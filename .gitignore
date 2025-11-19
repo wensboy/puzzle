@@ -1,0 +1,7 @@
+.zed/
+.vscode/
+build/
+script/
+README.md
+demo/
+doc/
