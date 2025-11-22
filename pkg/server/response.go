@@ -11,7 +11,7 @@ type (
 	Response[C any] interface {
 		Success(c C, code int, msg string, data any) error
 		Fail(c C, code int, msg string) error
-		Err(c C, httpCode int, msg string) error
+		Err(httpCode int, msg string) error
 	}
 	echoResponse[C echo.Context] struct{}
 )
@@ -38,14 +38,11 @@ func (r echoResponse[C]) Fail(c C, code int, msg string) error {
 	)
 }
 
-func (r echoResponse[C]) Err(c C, httpCode int, msg string) error {
-	return c.JSON(
-		httpCode,
-		map[string]any{
-			"code":    -1,
-			"message": msg,
-		},
-	)
+func (r echoResponse[C]) Err(httpCode int, msg string) error {
+	return echo.NewHTTPError(httpCode, map[string]any{
+		"code":    1,
+		"message": msg,
+	})
 }
 
 func WithEchoRes() Response[echo.Context] {

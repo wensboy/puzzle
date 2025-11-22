@@ -1,4 +1,4 @@
-package database
+package db
 
 import (
 	"database/sql"
@@ -24,6 +24,13 @@ type (
 		PageSize    int `json:"page_size"`
 		Total       int `json:"total"`
 		Items       []T `json:"items"`
+	}
+	Meta struct {
+		Id        uint64    `db:"id"`         // bigint
+		ExternId  []byte    `db:"extern_id"`  // binary(16)
+		CreatedAt time.Time `db:"created_at"` // datetime
+		UpdatedAt time.Time `db:"updated_at"` // datetime
+		Deleted   bool      `db:"deleted"`    // tinyint(1)
 	}
 )
 

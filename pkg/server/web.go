@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/wendisx/puzzle/pkg/errors"
 	"github.com/wendisx/puzzle/pkg/gcontext"
 	"github.com/wendisx/puzzle/pkg/log"
 )
@@ -42,6 +44,15 @@ func NewEchoServer(opt *WebOption) *EchoServer {
 	if !ok {
 		panic(fmt.Sprintf("invalid gcontext key [%s]", _ctx_echo))
 	}
+	// setup handler here
+	h.HTTPErrorHandler = errors.EchoErrHandler
+	skipper := func(c echo.Context) bool {
+		return false
+	}
+	h.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Skipper: skipper,
+		Format:  `${time_rfc3339} [${method}] network - from ${remote_ip} hit ${uri} with (${status},${latency_human}) in ${bytes_in} out ${bytes_out}` + "\n",
+	}))
 	es := &EchoServer{
 		webServer[*echo.Echo]{
 			opt:  opt,
@@ -68,7 +79,7 @@ func (es *EchoServer) Stop() {
 }
 
 func (ws *webServer[H]) setupServer() {
-	// setup serber here
+	// setup server here
 	ws.s.Handler = ws.h
 	if ws.opt.Addr == "" {
 		ws.opt.Addr = _defaultAddr
@@ -78,7 +89,7 @@ func (ws *webServer[H]) setupServer() {
 
 func (ws *webServer[H]) startServer() {
 	go ws.stopServer(_defaultDelay)
-	log.PlainLog.Info(fmt.Sprintf("web server start listen %s", ws.s.Addr))
+	log.PlainLog.Info(fmt.Sprintf("web server listen %s", ws.s.Addr))
 	if err := ws.s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.PlainLog.Error(fmt.Sprintf("web server start fail for %s", err.Error()))
 		close(ws.exit)
@@ -96,6 +107,6 @@ func (ws *webServer[H]) stopServer(delay time.Duration) {
 		log.PlainLog.Error(fmt.Sprintf("web server shutdown fail after %s", delay))
 		os.Exit(1)
 	}
-	log.PlainLog.Error(fmt.Sprintf("web server shutdown success after %s", delay))
+	log.PlainLog.Info(fmt.Sprintf("web server shutdown success after %s", delay))
 	close(ws.exit)
 }

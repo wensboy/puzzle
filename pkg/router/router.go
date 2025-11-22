@@ -53,7 +53,8 @@ func (r *echoRouter) RootPattern(rp string) *echoRouter {
 	if !ok {
 		panic(fmt.Sprintf("invalid gcontext key with [%s]", _ctx_echo))
 	}
-	r.g = e.Group(rp)
+	r.rootPattern = rp
+	r.g = e.Group(r.rootPattern)
 	return r
 }
 
