@@ -2,11 +2,11 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"github.com/wendisx/puzzle/pkg/clog"
 )
 
 /*
@@ -32,8 +32,9 @@ func InitMysql(dsn string) MysqlDB {
 	defer cancle()
 	db, err := sqlx.ConnectContext(ctx, _driver_mysql, dsn)
 	if err != nil {
-		// todo: log...
-		fmt.Printf("%s\n", err.Error())
+		clog.Panic(err.Error())
+	} else {
+		clog.Info("<pkg.database> Mysql Database initialization successful.")
 	}
 	return db
 }

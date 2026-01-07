@@ -1,4 +1,4 @@
-package log
+package clog
 
 import (
 	"bytes"
@@ -14,6 +14,10 @@ import (
 
 	"github.com/valyala/fasttemplate"
 )
+
+/*
+	discard log inplement but useful
+*/
 
 const (
 	_ts_rfc3339     = "ts_rfc3339"

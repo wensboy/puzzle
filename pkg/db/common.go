@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/wendisx/puzzle/pkg/clog"
 )
 
 // 并不是所有的database驱动支持从LastInsertId中得到合适的pkey值, 这里以最宽松的方式执行插入
 func InsertWithPlace(ctx context.Context, db *sqlx.DB, sqlStr string, args ...any) error {
 	_, err := db.ExecContext(ctx, sqlStr, args...)
 	if err != nil {
-		// todo: log and throw error
+		clog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -19,7 +20,7 @@ func InsertWithPlace(ctx context.Context, db *sqlx.DB, sqlStr string, args ...an
 func UpdateWithPlace(ctx context.Context, db *sqlx.DB, sqlStr string, args ...any) error {
 	_, err := db.ExecContext(ctx, sqlStr, args...)
 	if err != nil {
-		// todo: log and throw error
+		clog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -28,7 +29,7 @@ func UpdateWithPlace(ctx context.Context, db *sqlx.DB, sqlStr string, args ...an
 func DeleteWithPlace(ctx context.Context, db *sqlx.DB, sqlStr string, args ...any) error {
 	_, err := db.ExecContext(ctx, sqlStr, args...)
 	if err != nil {
-		// todo: log and throw error
+		clog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -38,7 +39,7 @@ func QueryWithPlace[R any](ctx context.Context, db *sqlx.DB, sqlStr string, args
 	var dest R
 	err := db.GetContext(ctx, &dest, sqlStr, args...)
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 	}
 	return dest, err
 }
@@ -47,7 +48,7 @@ func QListWithPlace[R any](ctx context.Context, db *sqlx.DB, sqlStr string, args
 	var dest []R
 	err := db.SelectContext(ctx, &dest, sqlStr, args...)
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 	}
 	return dest, err
 }
@@ -57,7 +58,7 @@ func QPageWithPlace[R any](ctx context.Context, db *sqlx.DB, sqlStr string, args
 	list := make([]R, 0)
 	list, err := QListWithPlace[R](ctx, db, sqlStr, args...)
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 	}
 	// 传递时, 大概率offset和count是args[len(args)-2]和args[len(args)-1], 这里不尝试赋值page, 依赖上层行为处理.
 	page.Items = list
@@ -67,7 +68,7 @@ func QPageWithPlace[R any](ctx context.Context, db *sqlx.DB, sqlStr string, args
 func InsertWithName(ctx context.Context, db *sqlx.DB, sqlStr string, obj any) error {
 	_, err := db.NamedExecContext(ctx, sqlStr, obj)
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -76,7 +77,7 @@ func InsertWithName(ctx context.Context, db *sqlx.DB, sqlStr string, obj any) er
 func UpdateWithName(ctx context.Context, db *sqlx.DB, sqlStr string, obj any) error {
 	_, err := db.NamedExecContext(ctx, sqlStr, obj)
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -85,7 +86,7 @@ func UpdateWithName(ctx context.Context, db *sqlx.DB, sqlStr string, obj any) er
 func DeleteWithName(ctx context.Context, db *sqlx.DB, sqlStr string, obj any) error {
 	_, err := db.NamedExecContext(ctx, sqlStr, obj)
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -100,7 +101,7 @@ func QueryWithName[R any](ctx context.Context, db *sqlx.DB, sqlStr string, obj a
 		}
 	}
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 	}
 	return dest, err
 }
@@ -112,13 +113,13 @@ func QListWithName[R any](ctx context.Context, db *sqlx.DB, sqlStr string, obj a
 	for rows.Next() {
 		err = rows.StructScan(&row)
 		if err != nil {
-			// todo: log and continue
+			clog.Error(err.Error())
 			continue
 		}
 		dest = append(dest, row)
 	}
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 	}
 	return dest, err
 }
@@ -128,7 +129,7 @@ func QPageWithName[R any](ctx context.Context, db *sqlx.DB, sqlStr string, obj a
 	list := make([]R, 0)
 	list, err := QListWithName[R](ctx, db, sqlStr, obj)
 	if err != nil {
-		// todo: log
+		clog.Error(err.Error())
 	}
 	page.Items = list
 	return page, err

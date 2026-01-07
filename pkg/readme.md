@@ -56,5 +56,6 @@ log 设计主要包含几个要点: 显示提示, 内容输出, 结构化和非�
     记录来自 colorable log -- clog 的接口声明和细节
 */
 package clog
-// loc()
+// loc(package): pkg/clog
+// loc(test): pkg/clog
 ```

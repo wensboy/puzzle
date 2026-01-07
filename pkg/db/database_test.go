@@ -12,7 +12,7 @@ const (
 	_test_ctx_tomeout     = 10 * time.Second
 	_test_user_name_basic = "test_user_"
 	_test_user_max_limit  = 10
-	_test_user_id_basic   = 3
+	_test_user_id_basic   = 1
 )
 
 var (
@@ -162,6 +162,21 @@ func Test_update_one(t *testing.T) {
 
 // pass? -- yes just like insert happen
 func Test_delete_one(t *testing.T) {
+	_test_mysql_db = InitMysql(_test_default_dsn)
+	ctx, cancle := context.WithTimeout(context.Background(), _test_ctx_tomeout)
+	defer cancle()
+	_test_delall_basic_sql := `
+	delete from user_basic
+	`
+	_test_delall_detail_sql := ` 
+	delete from user_detail
+	`
+	var err error
+	err = DeleteWithPlace(ctx, _test_mysql_db, _test_delall_detail_sql)
+	err = DeleteWithPlace(ctx, _test_mysql_db, _test_delall_basic_sql)
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 /*
