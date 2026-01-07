@@ -1,13 +1,8 @@
-package db
+package database
 
 import (
 	"database/sql"
 	"time"
-)
-
-const (
-	Place = 1 << 2
-	Named = 1 << 3
 )
 
 type (
@@ -25,8 +20,9 @@ type (
 		Total       int `json:"total"`
 		Items       []T `json:"items"`
 	}
-	Meta struct {
-		Id        uint64    `db:"id"`         // bigint
+
+	MysqlMeta struct {
+		Id        uint64    `db:"id"`         // unsigned bigint
 		ExternId  []byte    `db:"extern_id"`  // binary(16)
 		CreatedAt time.Time `db:"created_at"` // datetime
 		UpdatedAt time.Time `db:"updated_at"` // datetime
