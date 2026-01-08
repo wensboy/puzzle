@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/wendisx/puzzle/pkg/log"
+	"github.com/wendisx/puzzle/pkg/clog"
 )
 
 // from Echo
@@ -33,6 +33,6 @@ func EchoErrHandler(err error, c echo.Context) {
 	}
 	e = c.JSON(httpCode, message)
 	if e != nil {
-		log.PlainLog.Error(fmt.Sprintf("error handler throw %s", e.Error()))
+		clog.Error(fmt.Sprintf("error handler throw %s", e.Error()))
 	}
 }

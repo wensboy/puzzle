@@ -3,29 +3,43 @@ package util
 import (
 	"fmt"
 	"reflect"
-	"sync"
+	"time"
+
+	"github.com/jellydator/ttlcache/v3"
+	"github.com/wendisx/puzzle/pkg/clog"
 )
 
+const (
+	_default_ttl      = 30 * time.Minute
+	_default_capacity = 1 << 7
+)
+
+// key(string): src_to_dest value(*Copier): pot some functions collection
+var copierPool *ttlcache.Cache[string, *Copier]
+
 type (
-	CopierPool sync.Map
-	Copier     struct {
+	Copier struct {
 		fns []func(dest, src reflect.Value)
 	}
 )
 
-var copierPool sync.Map
+func init() {
+	copierPool = ttlcache.New(
+		ttlcache.WithTTL[string, *Copier](_default_ttl),
+		ttlcache.WithCapacity[string, *Copier](_default_capacity),
+	)
+}
 
 func GetCopier(src, dest interface{}) *Copier {
-	cKey := fmt.Sprintf("%v->%v", src, dest)
-	if v, ok := copierPool.Load(cKey); ok {
-		return v.(*Copier)
+	cKey := fmt.Sprintf("%v_to_%v", src, dest)
+	if copierPool.Has(cKey) {
+		return copierPool.Get(cKey).Value()
 	}
 	copier := NewCopier(reflect.TypeOf(src), reflect.TypeOf(dest))
-	copierPool.Store(cKey, copier)
+	copierPool.Set(cKey, copier, ttlcache.DefaultTTL)
 	return copier
 }
 
-// .NewCopier(A,B) -- A,B [struct] <-pointer
 func NewCopier(srcType, destType reflect.Type) *Copier {
 	var fns []func(dest, src reflect.Value)
 	if srcType.Kind() == reflect.Pointer {
@@ -34,10 +48,11 @@ func NewCopier(srcType, destType reflect.Type) *Copier {
 	if destType.Kind() == reflect.Pointer {
 		destType = destType.Elem()
 	}
+	// 对于dest中的字段尽可能在src中找到源
 	for i := 0; i < destType.NumField(); i += 1 {
 		df := destType.Field(i)
 		sf, ok := srcType.FieldByName(df.Name)
-		// 未导出字段通过反射赋值行为为panic
+		// 没找到跳过字段
 		if !ok || !df.IsExported() {
 			continue
 		}
@@ -56,20 +71,19 @@ func NewCopier(srcType, destType reflect.Type) *Copier {
 	}
 }
 
-// Copy(&B,&A) -- A,B [pointer] <- struct
 func (c *Copier) Copy(dest, src interface{}) {
 	destValue := reflect.ValueOf(dest)
 	srcValue := reflect.ValueOf(src)
 
 	if destValue.Kind() != reflect.Pointer || srcValue.Kind() != reflect.Pointer {
-		panic("[copier] - both dest and src must be pointers to struct")
+		clog.Panic("[copier] - both dest and src must be pointers to struct")
 	}
 
 	destValue = destValue.Elem()
 	srcValue = srcValue.Elem()
 
 	if destValue.Kind() != reflect.Struct || srcValue.Kind() != reflect.Struct {
-		panic("[copier] -  both dest and src must point to structs")
+		clog.Panic("[copier] -  both dest and src must point to structs")
 	}
 
 	for _, fn := range c.fns {

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/wendisx/puzzle/pkg/log"
+	"github.com/wendisx/puzzle/pkg/clog"
 	"github.com/wendisx/puzzle/pkg/server"
 	"github.com/wendisx/puzzle/pkg/util"
 )
@@ -16,7 +16,7 @@ func (m EchoMiddleware) SimpleJwtAuth() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			tokenStr := c.Request().Header.Get("Authorization")
-			log.PlainLog.Debug(tokenStr)
+			clog.Debug(tokenStr)
 			if tokenStr == "" || !strings.HasPrefix(tokenStr, "Bearer ") {
 				return server.WithEchoRes().Err(http.StatusUnauthorized, "unauthorized")
 			}
@@ -26,7 +26,7 @@ func (m EchoMiddleware) SimpleJwtAuth() echo.MiddlewareFunc {
 				return server.WithEchoRes().Err(http.StatusUnauthorized, "invalid token")
 			}
 			// TODO: to be optimized...
-			log.PlainLog.Info(fmt.Sprintf("context.user{id=%s,name=%s}", string(jwtClaim.ExternId), jwtClaim.Name))
+			clog.Info(fmt.Sprintf("context.user{id=%s,name=%s}", string(jwtClaim.ExternId), jwtClaim.Name))
 			c.Set("userId", jwtClaim.ExternId)
 			c.Set("name", jwtClaim.Name)
 			return next(c)
@@ -45,7 +45,7 @@ func (m EchoMiddleware) ParseAndCheckBody(s interface{}) echo.MiddlewareFunc {
 			if err != nil {
 				return server.WithEchoRes().Err(http.StatusBadRequest, "Parameter verification failed")
 			}
-			log.PlainLog.Debug(fmt.Sprintf("%#v", s))
+			clog.Debug(fmt.Sprintf("%#v", s))
 			c.Set("body", s)
 			return next(c)
 		}

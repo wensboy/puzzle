@@ -11,9 +11,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/wendisx/puzzle/pkg/clog"
 	"github.com/wendisx/puzzle/pkg/errors"
 	"github.com/wendisx/puzzle/pkg/gcontext"
-	"github.com/wendisx/puzzle/pkg/log"
 )
 
 const (
@@ -89,13 +89,13 @@ func (ws *webServer[H]) setupServer() {
 
 func (ws *webServer[H]) startServer() {
 	go ws.stopServer(_defaultDelay)
-	log.PlainLog.Info(fmt.Sprintf("web server listen %s", ws.s.Addr))
+	clog.Info(fmt.Sprintf("web server listen %s", ws.s.Addr))
 	if err := ws.s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.PlainLog.Error(fmt.Sprintf("web server start fail for %s", err.Error()))
+		clog.Error(fmt.Sprintf("web server start fail for %s", err.Error()))
 		close(ws.exit)
 	}
 	<-ws.exit
-	log.PlainLog.Info("web server exit")
+	clog.Info("web server exit")
 }
 
 func (ws *webServer[H]) stopServer(delay time.Duration) {
@@ -104,9 +104,9 @@ func (ws *webServer[H]) stopServer(delay time.Duration) {
 	ctx, cancle := context.WithTimeout(context.Background(), delay)
 	defer cancle()
 	if err := ws.s.Shutdown(ctx); err != nil {
-		log.PlainLog.Error(fmt.Sprintf("web server shutdown fail after %s", delay))
+		clog.Error(fmt.Sprintf("web server shutdown fail after %s", delay))
 		os.Exit(1)
 	}
-	log.PlainLog.Info(fmt.Sprintf("web server shutdown success after %s", delay))
+	clog.Info(fmt.Sprintf("web server shutdown success after %s", delay))
 	close(ws.exit)
 }

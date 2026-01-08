@@ -288,7 +288,7 @@ func (l *Logger) log(ctx context.Context, level LogLevel, msg string, args ...an
 	runtime.Callers(l.skipstep, pcs[:])
 	pc = pcs[0]
 	r := slog.NewRecord(time.Now(), level, msg, pc)
-	r.Add(args...)
+	r.Add(args...) // for structed log
 	_ = l.Handler().Handle(ctx, r)
 }
 

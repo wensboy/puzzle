@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/wendisx/puzzle/pkg/log"
+	"github.com/wendisx/puzzle/pkg/clog"
 	"github.com/wendisx/puzzle/pkg/util"
 )
 
@@ -33,7 +33,7 @@ func initConfigHub() {
 func SetupConfigHub(cover bool, path string) error {
 	initConfigHub()
 	if err := util.ParseYamlFile(path, globalConfig); err != nil {
-		log.PlainLog.Error(fmt.Sprintf("parse yaml file fail: %s", err.Error()))
+		clog.Error(fmt.Sprintf("parse config file fail for %s", err.Error()))
 		return err
 	}
 	if cover {
