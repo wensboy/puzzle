@@ -6,56 +6,70 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/wendisx/puzzle/pkg/gcontext"
-	"github.com/wendisx/puzzle/pkg/log"
+	"github.com/wendisx/puzzle/pkg/clog"
 )
 
+/*
+router test with echo framework.
+eg: usi=/agent/[api|openapi]/[v..]/<ns>/...
+*/
 type (
-	tr1 struct{}
-	tr2 struct{}
+	VersionRoute struct {
+		EchoRoute
+	}
+	ApiRoute struct {
+		EchoRoute
+	}
+	UserPeer struct {
+		EchoPeer
+	}
 )
 
-func newTr1() *tr1             { return &tr1{} }
-func (r *tr1) Pattern() string { return "/tr1" }
-func (r *tr1) Block() bool     { return false }
-func (r *tr1) IsEnd() bool     { return false }
-func (r *tr1) RegisterRule(prefix string, g *echo.Group) {
-	g.Group(r.Pattern())
-	prefix += r.Pattern()
-	EchoApply(prefix, g, newTr2())
-}
-func (r *tr1) RegisterEndpoint(prefix string, g *echo.Group) {
-	g.Group(r.Pattern())
-	prefix += r.Pattern()
-	log.PlainLog.Debug(fmt.Sprintf("path: %s/t1", prefix))
-	g.Add(http.MethodGet, "/t1", func(c echo.Context) error {
-		return c.String(http.StatusOK, "t1")
+func (up *UserPeer) Mount(p EchoPack) {
+	up.ToEndpoint(Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]{
+		Method: http.MethodGet,
+		Path:   "/info",
+		Handler: func(c echo.Context) error {
+			return c.String(http.StatusOK, "get info successfully.")
+		},
+		PreHandlers: []echo.MiddlewareFunc{},
 	})
+	up.EchoPeer.Mount(p)
 }
 
-func newTr2() *tr2             { return &tr2{} }
-func (r *tr2) Pattern() string { return "/tr2" }
-func (r *tr2) Block() bool     { return false }
-func (r *tr2) IsEnd() bool     { return true }
-func (r *tr2) RegisterRule(prefix string, g *echo.Group) {
-	g.Group(r.Pattern())
-	prefix += r.Pattern()
-	log.PlainLog.Debug(fmt.Sprintf("path: %s", prefix))
-}
-func (r *tr2) RegisterEndpoint(prefix string, g *echo.Group) {
-	g.Group(r.Pattern())
-	prefix += r.Pattern()
-	log.PlainLog.Debug(fmt.Sprintf("path: %s/t2", prefix))
-	g.Add(http.MethodGet, "/t2", func(c echo.Context) error {
-		return c.String(http.StatusOK, "t2")
-	})
+// test not avtive route [passed]
+func (vr *VersionRoute) Active() bool {
+	return true
 }
 
-func TestEchoRouter(t *testing.T) {
-	e := echo.New()
-	gcontext.NewGlobalContext().Set(_ctx_echo, e)
-	r := NewEchoRouter().RootPattern("")
-	t.Run("rule_endpoint", func(t *testing.T) {
-		r.Apply(newTr1())
-	})
+var (
+	e = echo.New()
+)
+
+// test single instance of echopack [passed]
+func Test_single_instance(t *testing.T) {
+	a := DefaultEchoPack(e)
+	b := DefaultEchoPack(e)
+	clog.Debug(fmt.Sprintf("the same instance of _default_echopack: %v", a == b))
+}
+
+// test route [passed]
+func Test_route(t *testing.T) {
+	rootRoute := NewEchoRoot(e)
+	// _ = NewEchoRoot(e)
+	apiRoute := &ApiRoute{
+		EchoRoute: *NewEchoRoute("/api"),
+	}
+	vRoute := &VersionRoute{
+		EchoRoute: *NewEchoRoute("/v1"),
+	}
+	up := &UserPeer{}
+	rootRoute.ToRoute(apiRoute)
+	apiRoute.ToRoute(vRoute)
+	vRoute.ToPeer(up)
+	rootRoute.Outbound()
+	e.Server.Addr = "127.0.0.1:3333"
+	if err := e.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		clog.Panic(err.Error())
+	}
 }

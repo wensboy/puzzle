@@ -39,14 +39,15 @@ const (
 	_format_default = "???"
 
 	// can extend some log level
-	DEBUG                  = slog.LevelDebug
-	INFO                   = slog.LevelInfo
-	WARN                   = slog.LevelWarn
-	ERROR                  = slog.LevelError
-	PANIC         LogLevel = 9
-	FATAL         LogLevel = 10
-	_max_level             = 1 << 5
-	_offset_level          = 1 << 2
+	DEBUG                   = slog.LevelDebug
+	INFO                    = slog.LevelInfo
+	WARN                    = slog.LevelWarn
+	ERROR                   = slog.LevelError
+	PANIC          LogLevel = 9
+	FATAL          LogLevel = 10
+	_max_level              = 1 << 5
+	_offset_level           = 1 << 2
+	_default_level          = INFO
 
 	_default_skip_step = 4
 	_default_template  = `{_temp_timestamp} {_temp_shortpath}:{_temp_linenum} [{_temp_level}] {_temp_prefix}`
@@ -103,7 +104,7 @@ type (
 )
 
 func init() {
-	_default_logger = NewLogger(NewPlainTextHandler(os.Stderr, DEBUG, _default_template))
+	_default_logger = NewLogger(NewPlainTextHandler(os.Stderr, _default_level, _default_template))
 }
 
 func _format_timestamp() string {

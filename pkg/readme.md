@@ -57,5 +57,18 @@ log 设计主要包含几个要点: 显示提示, 内容输出, 结构化和非�
 */
 package clog
 // loc(package): pkg/clog
-// loc(test): pkg/clog
+// loc(test): pkg/clog/clog_test [passed]
+```
+
+# <a id="router">router</a>
+
+router 是一个极其简单但又极其复杂的设计部分, 不过在一定程度上其实可以直接借鉴许多网络概念设计, 例如l3层的路由器处理package的行为.
+
+```go
+/*
+    记录来自 router 的接口声明和细节
+*/
+package router
+// loc(package): pkg/router
+// loc(test): pkg/router/router_test [basic passed]
 ```

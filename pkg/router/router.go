@@ -1,90 +1,46 @@
 package router
 
-import (
-	"fmt"
-
-	"github.com/labstack/echo/v4"
-	"github.com/wendisx/puzzle/pkg/gcontext"
-	"github.com/wendisx/puzzle/pkg/log"
-)
-
-const (
-	_ctx_echo    = "_ctx_echo"
-	_defaultRoot = ""
-)
+/*
+	router
+	不同 web framework 实现的方式差异很大, 因此不能简单地直接将一个uniform的东西设计出来接管所有的框架
+	但是可以设计一套合理的接口将不同框架的差异减小
+	调用过程:
+	root_pack -> _(Route)_N -> _(Peer)_N -> Mount() -> endpoints
+	1. 创建 根Pack定义, 作为路径上下文传递
+	2. 封装 Route[Pack], 通过Inbound()接入根Pack, 通过ToRoute()接入next route
+	3. 封装 Peer[Pack], 通过ToPeer()接入指定Route下
+	4. 重写需要覆盖的中间件在Handle()中, 通过重写Inbound()最后执行Handle()
+	5. 重写默认的Mount()加入Endpoints, 最终执行默认Mount()
+	6. 执行带根Inbound的Outbound()
+*/
 
 type (
-	RouteRule[G any] interface {
-		Block() bool
-		Pattern() string
-		IsEnd() bool
-		RegisterRule(prefix string, g G)
-		RegisterEndpoint(prefix string, g G)
+	// Pack should as enbedded meta info
+	Pack struct {
+		Prefix string
+		// ...some message to transform
 	}
-	router struct {
-		routeCnt    int
-		activeCnt   int
-		rootPattern string // _default = "" replace root
+	// P is web framework package transform struct
+	Route[P any] interface {
+		Active() bool // just as the thing to block some bad or discard route link.
+		Handle()      // just add all handlers here
+		Inbound(P)
+		Outbound()
+		ToRoute(Route[P])
+		ToPeer(Peer[P])
 	}
-	Endpoint[HF any] struct {
-		Method string
-		Path   string
-		Hf     HF
+	// maybe Peer should collect many endpoints.
+	Peer[P any] interface {
+		Mount(P)
 	}
-	echoRouter struct {
-		router
-		g *echo.Group
+	Endpoint[F any, MF any] struct {
+		Path        string
+		Method      string
+		Kind        uint
+		Handler     F
+		PreHandlers []MF
 	}
 )
 
-func NewEchoRouter() *echoRouter {
-	r := &echoRouter{
-		router: router{
-			rootPattern: _defaultRoot,
-			routeCnt:    0,
-			activeCnt:   0,
-		},
-	}
-	return r
-}
-
-func (r *echoRouter) RootPattern(rp string) *echoRouter {
-	e, ok := gcontext.GetGlobalContext().Get(_ctx_echo).(*echo.Echo)
-	if !ok {
-		panic(fmt.Sprintf("invalid gcontext key with [%s]", _ctx_echo))
-	}
-	r.rootPattern = rp
-	r.g = e.Group(r.rootPattern)
-	return r
-}
-
-func (r *echoRouter) Apply(rr RouteRule[*echo.Group]) *echoRouter {
-	if r.g == nil {
-		panic("router can't find root pattern")
-	}
-	EchoApply(r.rootPattern, r.g, rr)
-	r.routeCnt += 1
-	if !rr.Block() {
-		r.activeCnt += 1
-	}
-	return r
-}
-
-func EchoApply(prefix string, g *echo.Group, rr RouteRule[*echo.Group]) {
-	apply(prefix, g, rr)
-}
-
-func EchoEndpoint(prefix string, g *echo.Group, ep *Endpoint[echo.HandlerFunc], mf ...echo.MiddlewareFunc) {
-	log.PlainLog.Info(fmt.Sprintf("endpoint at %s in %s", prefix+ep.Path, ep.Method))
-	g.Add(ep.Method, ep.Path, ep.Hf, mf...)
-}
-
-func apply[G any](prefix string, g G, rr RouteRule[G]) {
-	if rr.Block() {
-		return
-	}
-	rr.RegisterEndpoint(prefix, g)
-	if !rr.IsEnd() {
-		rr.RegisterRule(prefix, g)
-	}
+func init() {
 }
