@@ -14,6 +14,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/valyala/fasttemplate"
+	"github.com/wendisx/puzzle/pkg/palette"
 )
 
 /*
@@ -63,12 +64,12 @@ const (
 )
 
 var (
-	_fg_debug = RGB{R: 0, G: 0, B: 255}     // base blue
-	_fg_info  = RGB{R: 0, G: 255, B: 0}     // base green
-	_fg_warn  = RGB{R: 255, G: 255, B: 0}   // base yellow
-	_fg_error = RGB{R: 255, G: 0, B: 0}     // base red
-	_fg_panic = RGB{R: 160, G: 32, B: 240}  // base purple
-	_fg_fatal = RGB{R: 190, G: 190, B: 190} // base grey
+	_fg_debug = palette.RGB_BLUE   // base blue
+	_fg_info  = palette.RGB_GREEN  // base green
+	_fg_warn  = palette.RGB_YELLOW // base yellow
+	_fg_error = palette.RGB_RED    // base red
+	_fg_panic = palette.RGB_PURPLE // base purple
+	_fg_fatal = palette.RGB_GREY   // base grey
 
 	_default_logger *Logger
 )
@@ -77,18 +78,12 @@ type (
 	// level
 	LogLevel = slog.Level
 	TempFunc func() string
-	// rgb
-	RGB struct {
-		R uint8
-		G uint8
-		B uint8
-	}
 	// handler -- colorable plain text
 	// no attrs store here, it's useless.
 	PlainTextHandler struct {
 		colorable bool
 		color     *color.Color           // color instance
-		colordict []RGB                  // 颜色字典
+		colordict []palette.RGB          // 颜色字典
 		temparser *fasttemplate.Template // parser
 		tempdict  map[string]TempFunc    // get template string from here
 		level     *slog.LevelVar         // 用于动态切换level
@@ -128,7 +123,7 @@ func NewPlainTextHandler(out io.Writer, minLevel LogLevel, template string) *Pla
 	}
 	var lva slog.LevelVar
 	// color list
-	colorList := make([]RGB, _max_level)
+	colorList := make([]palette.RGB, _max_level)
 	colorList[int(DEBUG)+_offset_level] = _fg_debug
 	colorList[int(INFO)+_offset_level] = _fg_info
 	colorList[int(WARN)+_offset_level] = _fg_warn
