@@ -25,7 +25,7 @@ type (
 	}
 )
 
-func (up *UserPeer) Mount(p EchoPack) {
+func (up *UserPeer) Parse(p EchoPack) {
 	up.ToEndpoint(Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]{
 		Method: http.MethodGet,
 		Path:   "/info",
@@ -34,7 +34,7 @@ func (up *UserPeer) Mount(p EchoPack) {
 		},
 		PreHandlers: []echo.MiddlewareFunc{},
 	})
-	up.EchoPeer.Mount(p)
+	up.EchoPeer.Parse(p)
 }
 
 // test not avtive route [passed]
@@ -55,8 +55,7 @@ func Test_single_instance(t *testing.T) {
 
 // test route [passed]
 func Test_route(t *testing.T) {
-	rootRoute := NewEchoRoot(e)
-	// _ = NewEchoRoot(e)
+	gateRoute := NewEchoGateway(e)
 	apiRoute := &ApiRoute{
 		EchoRoute: *NewEchoRoute("/api"),
 	}
@@ -64,10 +63,11 @@ func Test_route(t *testing.T) {
 		EchoRoute: *NewEchoRoute("/v1"),
 	}
 	up := &UserPeer{}
-	rootRoute.ToRoute(apiRoute)
+	gateRoute.ToRoute(apiRoute)
 	apiRoute.ToRoute(vRoute)
+	vRoute.ToRoute(apiRoute) // <- 发生递归
 	vRoute.ToPeer(up)
-	rootRoute.Outbound()
+	gateRoute.Outbound()
 	e.Server.Addr = "127.0.0.1:3333"
 	if err := e.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		clog.Panic(err.Error())

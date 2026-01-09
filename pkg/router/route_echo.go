@@ -2,19 +2,19 @@ package router
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/wendisx/puzzle/pkg/clog"
+	"github.com/wendisx/puzzle/pkg/palette"
 )
 
 /*
 	echo route impl
-	1. root route from group("")
-	2.
 */
 
 const (
-	_default_echoroot = ""
+	_default_echo_gateway = ""
 )
 
 var (
@@ -35,32 +35,16 @@ type (
 	EchoPeer struct {
 		qendpoint []Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]
 	}
-	EchoRoot struct {
+	EchoGateway struct {
 		EchoRoute
 	}
 )
 
-// return the single instance of EchoPack
-func DefaultEchoPack(e *echo.Echo) EchoPack {
-	// 确保所有 group from default root
-	if _default_echopack == nil {
-		_default_echopack = &EchoPack{
-			P: Pack{
-				Prefix: _default_echoroot,
-			},
-			G: e.Group(_default_echoroot),
-		}
+func NewEchoPack(p Pack, g *echo.Group) EchoPack {
+	return EchoPack{
+		P: p,
+		G: g,
 	}
-	return *_default_echopack
-}
-
-// return a new EchoRoot to start all
-func NewEchoRoot(e *echo.Echo) Route[EchoPack] {
-	er := &EchoRoot{
-		*NewEchoRoute(_default_echoroot),
-	}
-	er.Inbound(DefaultEchoPack(e))
-	return er
 }
 
 // as an embedded to implement Route[Pack]
@@ -73,10 +57,37 @@ func NewEchoRoute(path string) *EchoRoute {
 	}
 }
 
+// return the single instance of EchoPack
+func DefaultEchoPack(e *echo.Echo) EchoPack {
+	// 确保所有 group from default root
+	if _default_echopack == nil {
+		_default_echopack = &EchoPack{
+			P: Pack{
+				Prefix: _default_echo_gateway,
+			},
+			G: e.Group(_default_echo_gateway),
+		}
+	}
+	return *_default_echopack
+}
+
+// return a new EchoRoot to start all
+func NewEchoGateway(e *echo.Echo) Route[EchoPack] {
+	er := &EchoGateway{
+		*NewEchoRoute(_default_echo_gateway),
+	}
+	er.Inbound(DefaultEchoPack(e))
+	return er
+}
+
 // can override to block route and peer
 func (r *EchoRoute) Active() bool {
 	// clog.Warn("<pkg.router.echo> Call default Active function, this method should be explicitly overridden.")
 	return true
+}
+
+func (r *EchoRoute) Path() string {
+	return r.path
 }
 
 // should override and call it in Inbound()
@@ -91,14 +102,13 @@ func (r *EchoRoute) Inbound(p EchoPack) {
 	}
 	// new outbound EchoPack to next route or just peer
 	prefix := p.P.Prefix + r.path
-	clog.Debug("<pkg.router.echo> New outbound prefix: " + prefix)
+	clog.Info("<pkg.router.echo> router cover " + palette.SkyBlue(prefix))
 	r.ep = EchoPack{
 		P: Pack{
 			Prefix: prefix,
 		},
 		G: p.G.Group(r.path),
 	}
-	// r.Handle() <- just like this!
 }
 
 func (r *EchoRoute) ToRoute(rr Route[EchoPack]) {
@@ -111,18 +121,21 @@ func (r *EchoRoute) ToPeer(p Peer[EchoPack]) {
 
 // go out route and routing EchoPack
 func (r *EchoRoute) Outbound() {
+	if !r.Active() {
+		return
+	}
 	if r.ep.G == nil {
 		clog.Panic("<pkg.router.echo> Outbound routing link terminate.")
 	}
 	for i := range r.qroute {
 		// if override Active() to false, then just skip all.
-		if r.qroute[i].Active() {
+		if !strings.Contains(r.ep.P.Prefix, r.qroute[i].Path()) && r.qroute[i].Active() {
 			r.qroute[i].Inbound(r.ep)
 			r.qroute[i].Outbound()
 		}
 	}
 	for i := range r.qpeer {
-		r.qpeer[i].Mount(r.ep)
+		r.qpeer[i].Parse(r.ep)
 	}
 }
 
@@ -134,7 +147,7 @@ func (p *EchoPeer) ToEndpoint(ep Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]
 }
 
 // mount all endpoints
-func (p EchoPeer) Mount(pp EchoPack) {
+func (p EchoPeer) Parse(pp EchoPack) {
 	if len(p.qendpoint) == 0 {
 		clog.Warn("<pkg.router.echo> Call default Mount function, this method should be explicitly overridden and is eventually called.")
 	}

@@ -67,10 +67,7 @@ func InitEchoServer() *EchoServer {
 
 func (es *EchoServer) MountRoute() router.Route[router.EchoPack] {
 	clog.Info("mount route for echo server.")
-	es.h.GET("/check", func(c echo.Context) error {
-		return c.String(http.StatusOK, "pong")
-	})
-	return router.NewEchoRoot(es.h)
+	return router.NewEchoGateway(es.h)
 }
 
 func (es *EchoServer) SetupEchoServer(opts ...EchoServerOption) {

@@ -23,6 +23,7 @@ type (
 	// P is web framework package transform struct
 	Route[P any] interface {
 		Active() bool // just as the thing to block some bad or discard route link.
+		Path() string // get current path
 		Handle()      // just add all handlers here
 		Inbound(P)
 		Outbound()
@@ -31,7 +32,7 @@ type (
 	}
 	// maybe Peer should collect many endpoints.
 	Peer[P any] interface {
-		Mount(P)
+		Parse(P)
 	}
 	Endpoint[F any, MF any] struct {
 		Path        string

@@ -14,7 +14,7 @@ type (
 	}
 )
 
-func (sp *ServerPeer) Mount(p router.EchoPack) {
+func (sp *ServerPeer) Parse(p router.EchoPack) {
 	sp.ToEndpoint(router.Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]{
 		Method: http.MethodGet,
 		Path:   "/ping",
@@ -23,7 +23,7 @@ func (sp *ServerPeer) Mount(p router.EchoPack) {
 		},
 		PreHandlers: []echo.MiddlewareFunc{},
 	})
-	sp.EchoPeer.Mount(p)
+	sp.EchoPeer.Parse(p)
 }
 
 func Test_echo(t *testing.T) {

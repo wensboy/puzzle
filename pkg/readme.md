@@ -64,11 +64,50 @@ package clog
 
 router 是一个极其简单但又极其复杂的设计部分, 不过在一定程度上其实可以直接借鉴许多网络概念设计, 例如l3层的路由器处理package的行为.
 
+详细记录一下router的设计, 因为这在一定程度上确实有点复杂. 但是对于熟悉网络的人而言, 这其实很简单. 我们都知道router其实更像一棵树, 从/出发走到最终的端点路径, 这最终会组合为一条简单的uri就像`/agent/api/v1/namespace/endpoints...`, 这只是一个举例, 但是一般的uri会以某种类似的格式划分, 但是其本质上都是: 从/出发, 真的如此吗, 文件系统是如此的, 但是你得知道1必须从0开始, 我们将所有的路径按照`/`划分, 最终得到的就是一些以`/`开头的path, 这将成为route的一种标记, 我们希望这可以在一定的局部唯一, 因为可能可以见到`/api/api`这样的奇怪路由. 接下来看一些设定:
+
+P: Pack - 包, 代表网络上的传递上下文.
+Route[P]:  传递指定Pack的路由, 用于明确指责. 代表网络中可以接收和转发操作的中继器.
+Peer[P]: 端点, 代表一段链路的终点.
+Endpoint[F,MF]: 端点处理器, 指明关联的Peer[P]允许做的事情.
+
+执行流程: 
+
 ```go
-/*
-    记录来自 router 的接口声明和细节
+type (
+  Pack struct {
+    Prefix string // 记录前缀路径 
+    // 其他framework无关性上下文
+  }
+  Route[P any] interface {
+    Active() bool // 是否工作
+    Path() string // 终止递归
+    Inbound(P) // 路由接收
+    Outbound() // 路由转发
+    ToRoute(Route[P]) // next route
+    ToPeer(Peer[P]) // next peer
+    Handle() // route 执行操作
+  }
+  Peer[P any] interface {
+    Parse(P) // 解析
+  }
+  Endpoint[F any, MF any] struct {
+    Method string
+    Path string
+    Handler F
+    PreHandlers []MF
+  }
+)
+
+/* 
+    1. 封装 Pack 带分组器, 存在构造 Pack 的public api, 这里只能允许自行构建原始 Pack.
+    2. 封装 Route[P] 保存 Pack上下文, 自身路径, next route和next peer. 需要手动构造, 对封装后的实际 Route进行接口实现
+      2.1 func (r *_(Route[P])) Active() bool {return true} <- 这里一定返回 true, 默认启动
+      2.2 func (~) Inbound(p Pack) { ... <- 这里一定需要实现的操作为更新Pack上下文记录当前路径到prefix后进行grouper切分} // 由于默认Handle()为警告提醒显式实现, 该方法在需要执行Handle()时需要显式重写.
+      2.3 func (~) Outbound() { ... <- 这里一定需要遍历所有的next route和next peer进行上下文传递; 为了使外部重写的Active()覆盖内部的Active(), 不能等待到内部的Route转换后在Inbound()中进行拦截(实际上Inbound()也判断了), 在遍历next route时, 需要确保下一个有效后才传递上下文}
+      2.4 递归调用Outbound()进行全链路执行
+    3. 封装 Peer[P] 保存next endpoint. 无需构造, 直接定义, 实现Parse(P) 和 ToEndpoint(...) 即可. 内部的列表可以在触发ToEndpoint()时构造. 重写最外部的Parse(P), 定义所有端点后调用内部的Parse(P)传递上下文即可,
+    4. 构造多个嵌入封装, 组合, 最终执行gateway的Outbound()即可开始路由.
 */
-package router
-// loc(package): pkg/router
-// loc(test): pkg/router/router_test [basic passed]
+
 ```
