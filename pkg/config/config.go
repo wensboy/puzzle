@@ -20,21 +20,24 @@ config -- don't rely on any default configurationw.
 type Config struct {
 	DBConfig     DBConfig     `yaml:"database"`
 	ServerConfig ServerConfig `yaml:"server"`
+	EnvConfig    []string     `yaml:"environment"`
 }
 
-func Load(path string) *Config {
+func Load(path string) (*Config, bool) {
 	c := &Config{
 		DBConfig:     initDBConfig(),
 		ServerConfig: initServerConfig(),
 	}
 	if err := util.ParseYamlFile(path, c); err != nil {
 		clog.Error(fmt.Sprintf("<pkg.config> %s", err.Error()))
+		return c, false
 	}
 	// put Config into data dict
 	configDict := NewDataDict[any](DICTKEY_CONFIG)
 	configDict.Record(DATAKEY_CONFIG, c)
 	PutDict(configDict.Name(), configDict)
-	return c
+	clog.Info(fmt.Sprintf("<pkg.config> put data_key(%s) into dict_key(%s)", palette.SkyBlue(DATAKEY_CONFIG), palette.SkyBlue(DICTKEY_CONFIG)))
+	return c, true
 }
 
 func GetConfig() *Config {

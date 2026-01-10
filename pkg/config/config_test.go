@@ -10,7 +10,7 @@ import (
 // test basic configuration [passed]
 func Test_basic_print(t *testing.T) {
 	configPath := "../../demo/dev.yaml"
-	_ = Load(configPath)
+	_, _ = Load(configPath)
 	print_config()
 }
 
