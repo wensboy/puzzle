@@ -42,6 +42,16 @@ func (vr *VersionRoute) Active() bool {
 	return true
 }
 
+// test Handle [passed]
+func (vr *VersionRoute) Handle(p EchoPack) {
+	clog.Info("versionRoute starting handle Pack...")
+}
+
+func (vr *VersionRoute) Inbound(p EchoPack) {
+	vr.EchoRoute.Inbound(p)
+	vr.Handle(p)
+}
+
 var (
 	e = echo.New()
 )

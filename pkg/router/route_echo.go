@@ -91,7 +91,7 @@ func (r *EchoRoute) Path() string {
 }
 
 // should override and call it in Inbound()
-func (r *EchoRoute) Handle() {
+func (r *EchoRoute) Handle(p EchoPack) {
 	clog.Warn("<pkg.router.echo> Call default Handle function, this method should be explicitly overridden.")
 }
 

@@ -24,7 +24,7 @@ type (
 	Route[P any] interface {
 		Active() bool // just as the thing to block some bad or discard route link.
 		Path() string // get current path
-		Handle()      // just add all handlers here
+		Handle(P)     // just add all handlers here
 		Inbound(P)
 		Outbound()
 		ToRoute(Route[P])
