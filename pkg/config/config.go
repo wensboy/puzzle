@@ -23,28 +23,28 @@ type Config struct {
 	EnvConfig    []string     `yaml:"environment"`
 }
 
-func Load(path string) (*Config, bool) {
+func Load(path string) *Config {
 	c := &Config{
 		DBConfig:     initDBConfig(),
 		ServerConfig: initServerConfig(),
 	}
 	if err := util.ParseYamlFile(path, c); err != nil {
-		clog.Error(fmt.Sprintf("<pkg.config> %s", err.Error()))
-		return c, false
+		clog.Panic(fmt.Sprintf("%s", err.Error()))
+		return c
 	}
 	// put Config into data dict
 	configDict := NewDataDict[any](DICTKEY_CONFIG)
 	configDict.Record(DATAKEY_CONFIG, c)
 	PutDict(configDict.Name(), configDict)
-	clog.Info(fmt.Sprintf("<pkg.config> put data_key(%s) into dict_key(%s)", palette.SkyBlue(DATAKEY_CONFIG), palette.SkyBlue(DICTKEY_CONFIG)))
-	return c, true
+	clog.Info(fmt.Sprintf("put data_key(%s) into dict_key(%s)", palette.SkyBlue(DATAKEY_CONFIG), palette.SkyBlue(DICTKEY_CONFIG)))
+	return c
 }
 
 func GetConfig() *Config {
 	configDict := GetDict(DICTKEY_CONFIG)
 	c, ok := configDict.Find(DATAKEY_CONFIG).Value().(*Config)
 	if !ok {
-		clog.Error(fmt.Sprintf("from dict(%s) find data_key(%s)", palette.SkyBlue(DICTKEY_CONFIG), palette.SkyBlue(DATAKEY_CONFIG)))
+		clog.Panic(fmt.Sprintf("from dict_key(%s) can't find data_key(%s)", palette.SkyBlue(DICTKEY_CONFIG), palette.SkyBlue(DATAKEY_CONFIG)))
 	}
 	return c
 }

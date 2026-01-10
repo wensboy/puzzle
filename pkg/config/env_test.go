@@ -6,7 +6,6 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/wendisx/puzzle/pkg/clog"
-	"github.com/wendisx/puzzle/pkg/palette"
 )
 
 type (
@@ -37,8 +36,7 @@ func Test_usage_envconfig(t *testing.T) {
 	err = envconfig.Usage(prefix, &env)
 	if err != nil {
 		clog.Error(err.Error())
-	}
-	// 3. test checkDisallowed() [passed] (it looks like this is useless...)
+	} // 3. test checkDisallowed() [passed] (it looks like this is useless...)
 	err = envconfig.CheckDisallowed(prefix, &env)
 	if err != nil {
 		clog.Error(err.Error())
@@ -64,11 +62,14 @@ func (de *DevEnv) Prefix() string {
 }
 
 func print_dev_env() {
-	d := GetDict(DICTKEY_CONFIG)
-	c, ok := d.Find(DATAKEY_ENV).Value().(*DevEnv)
-	if !ok {
-		clog.Error(fmt.Sprintf("from dict_key(%s) get data_key(%s) failed", palette.SkyBlue(DICTKEY_CONFIG), palette.Red(DATAKEY_ENV)))
-	}
+	// old test [passed]
+	// d := GetDict(DICTKEY_CONFIG)
+	// c, ok := d.Find(DATAKEY_ENV).Value().(*DevEnv)
+	// if !ok {
+	// 	clog.Error(fmt.Sprintf("from dict_key(%s) get data_key(%s) failed", palette.SkyBlue(DICTKEY_CONFIG), palette.Red(DATAKEY_ENV)))
+	// }
+	// new test [passed]
+	c := GetEnv[DevEnv]()
 	clog.Info(fmt.Sprintf("%#v", c))
 }
 
@@ -76,7 +77,7 @@ func Test_load_env(t *testing.T) {
 	var de DevEnv
 	de.prefix = "dev"
 	path := "../../demo/dev.yaml"
-	_, _ = Load(path)
+	_ = Load(path)
 	LoadEnv(de.Prefix(), &de)
 	print_dev_env()
 }

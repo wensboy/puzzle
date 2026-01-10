@@ -27,7 +27,16 @@ func LoadEnv(prefix string, dest any) {
 		clog.Error(err.Error())
 	}
 	// put all environments into data dict
-	c := GetDict(DICTKEY_CONFIG)
-	c.Record(DATAKEY_ENV, dest)
-	clog.Info(fmt.Sprintf("<pkg.config> put data_key(%s) into dict_key(%s)", palette.SkyBlue(DATAKEY_ENV), palette.SkyBlue(DICTKEY_CONFIG)))
+	configDict := GetDict(DICTKEY_CONFIG)
+	configDict.Record(DATAKEY_ENV, dest)
+	clog.Info(fmt.Sprintf("put data_key(%s) into dict_key(%s)", palette.SkyBlue(DATAKEY_ENV), palette.SkyBlue(DICTKEY_CONFIG)))
+}
+
+func GetEnv[ES any]() *ES {
+	configDict := GetDict(DICTKEY_CONFIG)
+	e, ok := configDict.Find(DATAKEY_ENV).Value().(*ES)
+	if !ok {
+		clog.Panic(fmt.Sprintf("from dict_key(%s) can't find data_key(%s)", palette.SkyBlue(DICTKEY_CONFIG), palette.SkyBlue(DATAKEY_ENV)))
+	}
+	return e
 }

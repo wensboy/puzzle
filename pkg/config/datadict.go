@@ -62,7 +62,7 @@ func (ds *DictDirectory) find(k string) DataDict[any] {
 	if v, ok := ds.qdict.Load(k); ok {
 		return v.(DataDict[any])
 	}
-	clog.Panic(fmt.Sprintf("try to get invalid datadict from dict queue with dict_key(%s)", palette.Red(k)))
+	clog.Panic(fmt.Sprintf("from dict directory can't find dict_key(%s)", palette.Red(k)))
 	return DataDict[any]{
 		name: "unreachable_code",
 	}
@@ -98,6 +98,9 @@ func (dd *DataDict[V]) Record(k string, v V) {
 }
 
 func (dd *DataDict[V]) Find(k string) *ttlcache.Item[string, V] {
+	if !dd.dict.Has(k) {
+		clog.Panic(fmt.Sprintf("from dict_key(%s) can't find data_key(%s)", palette.Red(dd.name), palette.Red(k)))
+	}
 	return dd.dict.Get(k)
 }
 
