@@ -1,28 +1,27 @@
 package config
 
 type (
-	DBConfig struct {
+	SqlDBConfig struct {
+		Driver          string `yaml:"driver"`
 		Dsn             string `yaml:"dsn"`
 		MaxIdleConn     int    `yaml:"maxIdleConn"`
 		MaxOpenConn     int    `yaml:"maxOpenConn"`
 		MaxConnIdleTime int    `yaml:"maxConnIdleTime"`
 		MaxConnLifeTime int    `yaml:"maxConnLifeTime"`
 	}
-	dbConfigOption func(c *DBConfig)
+	DBConfig struct {
+		SqlDBConfig `yaml:"sql"`
+	}
 )
 
-func initDBConfig(dsn string) DBConfig {
+func initDBConfig() DBConfig {
 	return DBConfig{
-		Dsn:             dsn,
-		MaxIdleConn:     20,
-		MaxOpenConn:     0,
-		MaxConnIdleTime: 20,
-		MaxConnLifeTime: 60,
-	}
-}
-
-func (c *DBConfig) SetupConfig(opts ...dbConfigOption) {
-	for _, fn := range opts {
-		fn(c)
+		SqlDBConfig: SqlDBConfig{
+			Dsn:             "",
+			MaxIdleConn:     20,
+			MaxOpenConn:     0,
+			MaxConnIdleTime: 20,
+			MaxConnLifeTime: 60,
+		},
 	}
 }

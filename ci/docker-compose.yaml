@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db_test_mysqlj:
+    image: "mysql:8.0"
+    container_name: db_test_mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=test
+      - MYSQL_ROOT_PASSWORD=ff5740f5-5083-4f71-9ac7-c13144c87b78
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=e3f48bf0-4c9b-4273-bb7d-f106c5e1f3d4
+    ports:
+      - "53306:3306"
+    healthcheck:
+      test: ["CMD","mysqladmin","-u","root","-p","ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 10
