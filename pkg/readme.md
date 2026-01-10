@@ -7,13 +7,9 @@ author: "wendisx"
 # pkg section
 
 - [database](#db)
-  - [sqlite](#sqlite)
-  - [mysql](#mysql)
-  - [pgsql](#pgsql)
 - [log](#log)
-  - [non-structed](#nsl)
-  - [structed](#sl)
 - [router](#router)
+- [config](#config)
 
 ---
 
@@ -36,44 +32,44 @@ database 如何设计api. 其实这就是调用习惯的问题: init() -> setup(
 
 ```go
 /*
-    记录来自database package中的接口声明和细节
-    1. golang并不支持method泛型, 这直接导致在多db下没有一个较好的封装实现, 只能尝试借助通用方法.
-    2. 原则上将place和name参数分离, 防止一个function的功能过大.
-    3. 请求实现分为one,more,page查询
-    4. model设计区分固定字段和属性字段
+    database -- 统一数据库层的抽象, 简化集成和操作
+    loc(package): pkg/db
+       loc(test): pkg/db/database_test [passed]
 */
 package database
-// loc(package): pkg/db
-// loc(test): pkg/db/database_test.go [passed]
 ```
 
-# <a id="log">log</a>
+## <a id="log">log</a>
 
 log 设计主要包含几个要点: 显示提示, 内容输出, 结构化和非结构化. 在 container 环境中, 显然最核心的就是非结构化日志, 主要用于人可读的形式呈现, 而同时又需要保留结构化接口, 用于日志分析. 因此直接封装 slog 可以合理地处理这些. 
 
 ```go
 /*
-    记录来自 colorable log -- clog 的接口声明和细节
+    clog -- colorable log, 封装自slog设计
+    loc(package): pkg/clog
+       loc(test): pkg/clog/clog_test [passed]
 */
 package clog
-// loc(package): pkg/clog
-// loc(test): pkg/clog/clog_test [passed]
 ```
 
-# <a id="router">router</a>
+## <a id="router">router</a>
 
 router 是一个极其简单但又极其复杂的设计部分, 不过在一定程度上其实可以直接借鉴许多网络概念设计, 例如l3层的路由器处理package的行为.
 
 详细记录一下router的设计, 因为这在一定程度上确实有点复杂. 但是对于熟悉网络的人而言, 这其实很简单. 我们都知道router其实更像一棵树, 从/出发走到最终的端点路径, 这最终会组合为一条简单的uri就像`/agent/api/v1/namespace/endpoints...`, 这只是一个举例, 但是一般的uri会以某种类似的格式划分, 但是其本质上都是: 从/出发, 真的如此吗, 文件系统是如此的, 但是你得知道1必须从0开始, 我们将所有的路径按照`/`划分, 最终得到的就是一些以`/`开头的path, 这将成为route的一种标记, 我们希望这可以在一定的局部唯一, 因为可能可以见到`/api/api`这样的奇怪路由. 接下来看一些设定:
 
-P: Pack - 包, 代表网络上的传递上下文.
-Route[P]:  传递指定Pack的路由, 用于明确指责. 代表网络中可以接收和转发操作的中继器.
-Peer[P]: 端点, 代表一段链路的终点.
+P: Pack - 包, 代表网络上的传递上下文.</br>
+Route[P]:  传递指定Pack的路由, 用于明确职责. 代表网络中可以接收和转发操作的中继器.</br>
+Peer[P]: 端点, 代表一段链路的终点.</br>
 Endpoint[F,MF]: 端点处理器, 指明关联的Peer[P]允许做的事情.
 
-执行流程: 
-
 ```go
+/*
+    router -- 网络路由抽象设计, 简化统一路由层抽象
+    loc(package): pkg/router 
+       loc(test): pkg/router/router_test [passed]
+*/
+package router
 type (
   Pack struct {
     Prefix string // 记录前缀路径 
@@ -86,7 +82,7 @@ type (
     Outbound() // 路由转发
     ToRoute(Route[P]) // next route
     ToPeer(Peer[P]) // next peer
-    Handle() // route 执行操作
+    Handle(P) // route 执行操作
   }
   Peer[P any] interface {
     Parse(P) // 解析
@@ -110,4 +106,17 @@ type (
     4. 构造多个嵌入封装, 组合, 最终执行gateway的Outbound()即可开始路由.
 */
 
+```
+
+## <a id="config">config</a>
+
+```go
+/*
+    config -- 加载和处理配置, 提供便于操作配置的接口
+    loc(package): pkg/config
+       loc(test): 
+         - pkg/config/datadict_test [passed]
+         - pkg/config/config_test [passed]
+*/
+package config
 ```
