@@ -19,13 +19,18 @@ import (
 const (
 	// some default key from internal, exactly I'd like to got them from some .json files. :)
 	_dict_capacity = 1 << 10
-	_dict_timeout  = 10 * time.Minute
 
-	DICTKEY_CONFIG DictKey = "_dict_config_"
+	DICTKEY_CONFIG  = "_dict_config_"
+	DICTKEY_COMMAND = "_dict_command"
+
+	DATAKEY_CONFIG = "_data_config_"
+	DATAKEY_ENV    = "_data_env_"
+	DATAKEY_CLI    = "_data_cli_"
 )
 
 var (
 	_dict_directory *DictDirectory
+	_dict_timeout   = 10 * time.Minute
 )
 
 type (
@@ -49,7 +54,16 @@ func PutDict(k DictKey, dict DataDict[any]) {
 
 // panic from  .get(k)
 func GetDict(k DictKey) DataDict[any] {
-	return _dict_directory.find(string(k))
+	dd, found := _dict_directory.find(string(k))
+	if !found {
+		clog.Panic(fmt.Sprintf("from dict directory can't find dict_key(%s)", palette.Red(k)))
+	}
+	return dd
+}
+
+func HasDict(k DictKey) bool {
+	_, found := _dict_directory.find(string(k))
+	return found
 }
 
 // Create the broadest data dictionary and only allow this data dictionary to enter _dict_directory.
@@ -58,14 +72,16 @@ func (ds *DictDirectory) record(k string, dict DataDict[any]) {
 	clog.Info(fmt.Sprintf("put dict_key(%s) into dict directory", palette.SkyBlue(k)))
 }
 
-func (ds *DictDirectory) find(k string) DataDict[any] {
+func (ds *DictDirectory) find(k string) (DataDict[any], bool) {
 	if v, ok := ds.qdict.Load(k); ok {
-		return v.(DataDict[any])
+		return v.(DataDict[any]), true
 	}
-	clog.Panic(fmt.Sprintf("from dict directory can't find dict_key(%s)", palette.Red(k)))
-	return DataDict[any]{
-		name: "unreachable_code",
-	}
+	return DataDict[any]{}, false
+}
+
+// next dict ttl config
+func NextDictTTL(ttl time.Duration) {
+	_dict_timeout = ttl
 }
 
 // common usage data dict

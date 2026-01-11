@@ -2,18 +2,36 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/spf13/cobra"
 	"github.com/wendisx/puzzle/pkg/clog"
 	"github.com/wendisx/puzzle/pkg/config"
 )
 
 // test basic load cmd [passed]
 func Test_load_cmd(t *testing.T) {
-	// test success [passed]
+	// test load cmd [passed]
 	config.Load("../../demo/dev.yaml")
 	cli := LoadCmd("")
 	clog.Info(fmt.Sprintf("%#v", cli))
+	// test load cobra command [passed]
+	cmdDict := config.GetDict(config.DICTKEY_COMMAND)
+	verb := "client:start"
+	delimiter := ":"
+	cmd, ok := cmdDict.Find(strings.ReplaceAll(verb, delimiter, "")).Value().(*cobra.Command)
+	if !ok {
+		clog.Panic(fmt.Sprintf("from dict_key(%s) assert to type(*cobra.Command) fail", strings.ReplaceAll(verb, delimiter, "")))
+	}
+	clog.Info(fmt.Sprintf("%#v", cmd))
+	// test relative for client and client:start [passed]
+	verbP := "client"
+	cmdP, ok := cmdDict.Find(strings.ReplaceAll(verbP, delimiter, "")).Value().(*cobra.Command)
+	if !ok {
+		clog.Panic(fmt.Sprintf("from dict_key(%s) assert to type(*cobra.Command) fail", strings.ReplaceAll(verbP, delimiter, "")))
+	}
+	clog.Info(fmt.Sprintf("%p", cmdP))
 	// test fail [passed]
 	cli = LoadCmd("./command.json")
 	clog.Info(fmt.Sprintf("%#v", cli))
@@ -44,7 +62,7 @@ func Test_get_flags(t *testing.T) {
 	clog.Info(fmt.Sprintf("%#v", ParseLocalFlags(verb, delimiter, cli)))
 }
 
-// test get cli from data dict  []
+// test get cli from data dict  [passed]
 func print_cli() {
 	cli := GetCmd()
 	clog.Info(fmt.Sprintf("%#v", cli))
@@ -54,4 +72,21 @@ func Test_get_cli(t *testing.T) {
 	config.Load("../../demo/dev.yaml")
 	_ = LoadCmd("")
 	print_cli()
+}
+
+// test load excommand [passed]
+func Test_load_excommand(t *testing.T) {
+	config.Load("../../demo/dev.yaml")
+	_ = LoadCmd("")
+	_ = LoadCmd("../../demo/excommand.json")
+}
+
+// test get command [passed]
+func Test_get_command(t *testing.T) {
+	config.Load("../../demo/dev.yaml")
+	_ = LoadCmd("")
+	verb := "server:start"
+	delimiter := ":"
+	startCmd := GetCommand(verb, delimiter)
+	clog.Info(fmt.Sprintf("%p", startCmd))
 }

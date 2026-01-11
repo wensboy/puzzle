@@ -10,9 +10,6 @@ import (
 
 const (
 	_default_config_path = "" // just panic
-	DATAKEY_CONFIG       = "_data_config_"
-	DATAKEY_ENV          = "_data_env_"
-	DATAKEY_CLI          = "_data_cli_"
 )
 
 /*
