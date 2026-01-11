@@ -10,6 +10,7 @@ author: "wendisx"
 - [log](#log)
 - [router](#router)
 - [config](#config)
+- [cli](#cli) 
 
 ---
 
@@ -123,3 +124,13 @@ config 应该是简单的一个环节, 主要的功能就是加载必要的配�
 package config
 ```
 
+## <a id="cli">cli</a>
+
+```go
+/*
+    cli -- for cloud native applications
+    loc(package): pkg/cli
+       loc(test): 
+         - demo/entry [passed]
+*/
+```

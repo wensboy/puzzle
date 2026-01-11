@@ -50,7 +50,7 @@ const (
 	_offset_level           = 1 << 2
 	_default_level          = INFO
 
-	_default_skip_step = 4
+	_default_skip_step = 5 // caller(exactly need to show) -> caller(clog) -> clog.Log() -> logger.log() -> runtime.Caller -> extern low level
 	_default_template  = `{_temp_timestamp} {_temp_shortpath}:{_temp_linenum} [{_temp_level}] {_temp_prefix}`
 
 	/* internal record info */

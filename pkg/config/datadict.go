@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -56,6 +55,7 @@ func GetDict(k DictKey) DataDict[any] {
 // Create the broadest data dictionary and only allow this data dictionary to enter _dict_directory.
 func (ds *DictDirectory) record(k string, dict DataDict[any]) {
 	ds.qdict.Store(k, dict)
+	clog.Info(fmt.Sprintf("put dict_key(%s) into dict directory", palette.SkyBlue(k)))
 }
 
 func (ds *DictDirectory) find(k string) DataDict[any] {
@@ -74,15 +74,6 @@ func NewDataDict[V any](name DictKey) DataDict[V] {
 		ttlcache.WithCapacity[string, V](_dict_capacity),
 		ttlcache.WithTTL[string, V](_dict_timeout),
 	)
-	dd.OnInsertion(func(ctx context.Context, i *ttlcache.Item[string, V]) {
-		clog.Info(fmt.Sprintf("DataDict(%s) on Insert with [%s, %v]", palette.SkyBlue(name), i.Key(), i.Value()))
-	})
-	dd.OnUpdate(func(ctx context.Context, i *ttlcache.Item[string, V]) {
-		clog.Info(fmt.Sprintf("DataDict(%s) on Update with [%s, %v]", palette.SkyBlue(name), i.Key(), i.Value()))
-	})
-	dd.OnEviction(func(ctx context.Context, er ttlcache.EvictionReason, i *ttlcache.Item[string, V]) {
-		clog.Info(fmt.Sprintf("DataDict(%s) on Eviction with [%s, %v]", palette.SkyBlue(name), i.Key(), i.Value()))
-	})
 	return DataDict[V]{
 		name: string(name),
 		dict: dd,
@@ -95,6 +86,7 @@ func (dd *DataDict[V]) Name() DictKey {
 
 func (dd *DataDict[V]) Record(k string, v V) {
 	dd.dict.Set(k, v, ttlcache.DefaultTTL)
+	clog.Info(fmt.Sprintf("put data_key(%s) into dict_key(%s)", palette.SkyBlue(k), palette.SkyBlue(dd.name)))
 }
 
 func (dd *DataDict[V]) Find(k string) *ttlcache.Item[string, V] {

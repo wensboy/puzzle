@@ -9,10 +9,6 @@ import (
 	"github.com/wendisx/puzzle/pkg/palette"
 )
 
-const (
-	DATAKEY_ENV = "_data_env_"
-)
-
 func LoadEnv(prefix string, dest any) {
 	vofDest := reflect.ValueOf(dest)
 	if vofDest.Kind() != reflect.Ptr || vofDest.Elem().Kind() != reflect.Struct {
@@ -29,14 +25,13 @@ func LoadEnv(prefix string, dest any) {
 	// put all environments into data dict
 	configDict := GetDict(DICTKEY_CONFIG)
 	configDict.Record(DATAKEY_ENV, dest)
-	clog.Info(fmt.Sprintf("put data_key(%s) into dict_key(%s)", palette.SkyBlue(DATAKEY_ENV), palette.SkyBlue(DICTKEY_CONFIG)))
 }
 
 func GetEnv[ES any]() *ES {
 	configDict := GetDict(DICTKEY_CONFIG)
 	e, ok := configDict.Find(DATAKEY_ENV).Value().(*ES)
 	if !ok {
-		clog.Panic(fmt.Sprintf("from dict_key(%s) can't find data_key(%s)", palette.SkyBlue(DICTKEY_CONFIG), palette.SkyBlue(DATAKEY_ENV)))
+		clog.Panic(fmt.Sprintf("from data_key(%s) assert to type(*[ES any]) fail", palette.Red(DATAKEY_ENV)))
 	}
 	return e
 }

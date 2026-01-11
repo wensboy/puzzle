@@ -1,0 +1,84 @@
+{
+    "app": "puzzle",
+    "entry": [
+        "demo/entry.go"
+    ],
+    "version": "0.1.0",
+    "commands": [
+        {
+            "verb": "client",
+            "shortDesc": "",
+            "longDesc": "",
+            "persistentFlags": [],
+            "localFlags": [],
+            "subCommands": [
+                {
+                    "verb": "start",
+                    "shortDesc": "",
+                    "longDesc": "",
+                    "persistentFlags": [],
+                    "localFlags": [
+                        {
+                            "fullName": "host",
+                            "shortName": "h",
+                            "desc": "listen to the specified host"
+                        },
+                        {
+                            "fullName": "port",
+                            "shortName": "p",
+                            "desc": "listen to the specified port"
+                        },
+                        {
+                            "fullName": "target",
+                            "shortName": "t",
+                            "desc": "run on target platform"
+                        }
+                    ],
+                    "subCommands": []
+                }
+            ]
+        },
+        {
+            "verb": "server",
+            "shortDesc": "",
+            "longDesc": "",
+            "persistentFlags": [],
+            "localFlags": [],
+            "subCommands": [
+                {
+                    "verb": "start",
+                    "shortDesc": "",
+                    "longDesc": "",
+                    "persistentFlags": [
+                        {
+                            "fullName": "host",
+                            "shortName": "h",
+                            "desc": "listen to the specified host"
+                        },
+                        {
+                            "fullName": "port",
+                            "shortName": "p",
+                            "desc": "listen to the specified port"
+                        }
+                    ],
+                    "localFlags": [
+                        {
+                            "fullName": "config",
+                            "shortName": "c",
+                            "desc": "start with config"
+                        }
+                    ],
+                    "subCommands": []
+                }
+            ]
+        },
+        {
+            "verb": "log",
+            "shortDesc": "",
+            "longDesc": "",
+            "persistentFlags": [],
+            "localFlags": [],
+            "subCommands": []
+        }
+    ]
+}

@@ -11,6 +11,8 @@ import (
 const (
 	_default_config_path = "" // just panic
 	DATAKEY_CONFIG       = "_data_config_"
+	DATAKEY_ENV          = "_data_env_"
+	DATAKEY_CLI          = "_data_cli_"
 )
 
 /*
@@ -36,7 +38,6 @@ func Load(path string) *Config {
 	configDict := NewDataDict[any](DICTKEY_CONFIG)
 	configDict.Record(DATAKEY_CONFIG, c)
 	PutDict(configDict.Name(), configDict)
-	clog.Info(fmt.Sprintf("put data_key(%s) into dict_key(%s)", palette.SkyBlue(DATAKEY_CONFIG), palette.SkyBlue(DICTKEY_CONFIG)))
 	return c
 }
 
@@ -44,7 +45,7 @@ func GetConfig() *Config {
 	configDict := GetDict(DICTKEY_CONFIG)
 	c, ok := configDict.Find(DATAKEY_CONFIG).Value().(*Config)
 	if !ok {
-		clog.Panic(fmt.Sprintf("from dict_key(%s) can't find data_key(%s)", palette.SkyBlue(DICTKEY_CONFIG), palette.SkyBlue(DATAKEY_CONFIG)))
+		clog.Panic(fmt.Sprintf("from data_key(%s) assert to type(*Config) fail", palette.Red(DATAKEY_CONFIG)))
 	}
 	return c
 }
