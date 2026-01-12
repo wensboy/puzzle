@@ -3,12 +3,17 @@ package cli
 import (
 	"github.com/spf13/cobra"
 	"github.com/wendisx/puzzle/pkg/clog"
+	"github.com/wendisx/puzzle/pkg/config"
 )
 
 var (
 	_exists_root       = false
 	_verb_root         = "root"
 	_default_delimiter = ":"
+
+	_default_root_use   = "puzzle"
+	_default_root_short = ""
+	_default_root_long  = ""
 )
 
 func RootVerb(verb string) {
@@ -20,24 +25,31 @@ func DefaultDelimiter(delimiter string) {
 }
 
 func mountRoot() *cobra.Command {
-	versionCmd := mountVersion()
 	var rootCmd *cobra.Command
 	if !_exists_root {
 		rootCmd = &cobra.Command{
-			Use:   "puzzle",
-			Short: "",
-			Long:  "",
+			Use:   _default_root_use,
+			Short: _default_root_short,
+			Long:  _default_root_long,
+		}
+		if _dict_command == nil {
+			_dict_command = new(config.DataDict[any])
+			*_dict_command = config.GetDict(config.DICTKEY_COMMAND)
 		}
 		_dict_command.Record(_verb_root, rootCmd)
+		_exists_root = true
 	} else {
 		rootCmd = GetCommand(_verb_root, _default_delimiter)
 	}
-	rootCmd.AddCommand(versionCmd)
 	return rootCmd
 }
 
-func Execute() {
+func Execute(mountFuncs ...func(*cobra.Command)) {
 	rootCmd := mountRoot()
+	mountVersion(rootCmd)
+	for i := range mountFuncs {
+		mountFuncs[i](rootCmd)
+	}
 	if err := rootCmd.Execute(); err != nil {
 		clog.Fatal(err.Error())
 	}

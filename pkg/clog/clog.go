@@ -40,15 +40,14 @@ const (
 	_format_default = "???"
 
 	// can extend some log level
-	DEBUG                   = slog.LevelDebug
-	INFO                    = slog.LevelInfo
-	WARN                    = slog.LevelWarn
-	ERROR                   = slog.LevelError
-	PANIC          LogLevel = 9
-	FATAL          LogLevel = 10
-	_max_level              = 1 << 5
-	_offset_level           = 1 << 2
-	_default_level          = INFO
+	DEBUG                  = slog.LevelDebug
+	INFO                   = slog.LevelInfo
+	WARN                   = slog.LevelWarn
+	ERROR                  = slog.LevelError
+	PANIC         LogLevel = 9
+	FATAL         LogLevel = 10
+	_max_level             = 1 << 5
+	_offset_level          = 1 << 2
 
 	_default_skip_step = 5 // caller(exactly need to show) -> caller(clog) -> clog.Log() -> logger.log() -> runtime.Caller -> extern low level
 	_default_template  = `{_temp_timestamp} {_temp_shortpath}:{_temp_linenum} [{_temp_level}] {_temp_prefix}`
@@ -71,6 +70,7 @@ var (
 	_fg_panic = palette.RGB_PURPLE // base purple
 	_fg_fatal = palette.RGB_GREY   // base grey
 
+	_default_level  = INFO
 	_default_logger *Logger
 )
 
@@ -97,6 +97,11 @@ type (
 		skipstep int
 	}
 )
+
+func DefaultLevel(lv LogLevel) {
+	_default_level = lv
+	_default_logger = NewLogger(NewPlainTextHandler(os.Stderr, _default_level, _default_template))
+}
 
 func init() {
 	_default_logger = NewLogger(NewPlainTextHandler(os.Stderr, _default_level, _default_template))
