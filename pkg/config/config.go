@@ -8,8 +8,8 @@ import (
 	"github.com/wendisx/puzzle/pkg/util"
 )
 
-const (
-	_default_config_path = "" // just panic
+var (
+	_default_config = "./vendor/puzzle/demo/example.yaml"
 )
 
 /*
@@ -22,10 +22,17 @@ type Config struct {
 	EnvConfig    []string     `yaml:"environment"`
 }
 
-func Load(path string) *Config {
+func DefaultConfig(path string) {
+	_default_config = path
+}
+
+func LoadConfig(path string) *Config {
 	c := &Config{
 		DBConfig:     initDBConfig(),
 		ServerConfig: initServerConfig(),
+	}
+	if path == "" {
+		path = _default_config
 	}
 	if err := util.ParseYamlFile(path, c); err != nil {
 		clog.Panic(fmt.Sprintf("%s", err.Error()))

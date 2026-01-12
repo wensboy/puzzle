@@ -13,7 +13,7 @@ import (
 // test basic load cmd [passed]
 func Test_load_cmd(t *testing.T) {
 	// test load cmd [passed]
-	config.Load("../../demo/dev.yaml")
+	config.LoadConfig("../../demo/dev.yaml")
 	cli := LoadCmd("")
 	clog.Info(fmt.Sprintf("%#v", cli))
 	// test load cobra command [passed]
@@ -39,21 +39,21 @@ func Test_load_cmd(t *testing.T) {
 
 // test get flags [passed]
 func Test_get_flags(t *testing.T) {
-	config.Load("../../demo/dev.yaml")
+	config.LoadConfig("../../demo/dev.yaml")
 	cli := LoadCmd("")
 	// test persistent flags [passed]
 	delimiter := ":"
-	verb := "server:start"
+	verb := ":server:start"
 	clog.Info(fmt.Sprintf("%#v", ParsePersistenFlags(verb, delimiter, cli)))
 	// test local flags [passed]
 	clog.Info(fmt.Sprintf("%#v", ParseLocalFlags(verb, delimiter, cli)))
 	// test diff verb with the same sub verb [passed]
-	verb = "client:start"
+	verb = ":client:start"
 	clog.Info(fmt.Sprintf("%#v", ParsePersistenFlags(verb, delimiter, cli)))
 	clog.Info(fmt.Sprintf("%#v", ParseLocalFlags(verb, delimiter, cli)))
 	// expected [2,1,0,3] [passed]
-	// not exists verb []
-	verb = "log:start"
+	// not exists verb [passed]
+	verb = ":log:start"
 	clog.Info(fmt.Sprintf("%#v", ParsePersistenFlags(verb, delimiter, cli)))
 	clog.Info(fmt.Sprintf("%#v", ParseLocalFlags(verb, delimiter, cli)))
 	// test empty verb [passed]
@@ -69,24 +69,48 @@ func print_cli() {
 }
 
 func Test_get_cli(t *testing.T) {
-	config.Load("../../demo/dev.yaml")
+	config.LoadConfig("../../demo/dev.yaml")
 	_ = LoadCmd("")
 	print_cli()
 }
 
 // test load excommand [passed]
 func Test_load_excommand(t *testing.T) {
-	config.Load("../../demo/dev.yaml")
+	config.LoadConfig("../../demo/dev.yaml")
 	_ = LoadCmd("")
 	_ = LoadCmd("../../demo/excommand.json")
 }
 
 // test get command [passed]
 func Test_get_command(t *testing.T) {
-	config.Load("../../demo/dev.yaml")
+	config.LoadConfig("../../demo/dev.yaml")
 	_ = LoadCmd("")
 	verb := "server:start"
 	delimiter := ":"
 	startCmd := GetCommand(verb, delimiter)
 	clog.Info(fmt.Sprintf("%p", startCmd))
+}
+
+// test mount flags [passed]
+func Test_mount_flags(t *testing.T) {
+	config.LoadConfig("../../demo/dev.yaml")
+	_ = LoadCmd("")
+}
+
+// test get flag value [passed]
+func Test_get_flagvalue(t *testing.T) {
+	config.LoadConfig("../../demo/dev.yaml")
+	_ = LoadCmd("")
+	// try to get flag velue
+	verb := ":server:start"
+	delimiter := _default_delimiter
+	cmd := GetCommand(verb, delimiter)
+	lFlags := cmd.LocalFlags()
+	pFlags := cmd.PersistentFlags()
+	clog.Info(fmt.Sprintf("%#v", lFlags))
+	clog.Info(fmt.Sprintf("%#v", pFlags))
+	// show flag value
+	clog.Info(fmt.Sprintf("%v", pFlags.Lookup("host")))
+	clog.Info(fmt.Sprintf("%v", pFlags.Lookup("port")))
+	clog.Info(fmt.Sprintf("%v", lFlags.Lookup("config")))
 }

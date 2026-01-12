@@ -77,7 +77,7 @@ func Test_load_env(t *testing.T) {
 	var de DevEnv
 	de.prefix = "dev"
 	path := "../../demo/dev.yaml"
-	_ = Load(path)
+	_ = LoadConfig(path)
 	LoadEnv(de.Prefix(), &de)
 	print_dev_env()
 }

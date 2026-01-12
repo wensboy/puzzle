@@ -3,7 +3,8 @@
     "entry": [
         "demo/entry.go"
     ],
-    "version": "0.1.0",
+    "intro": "puzzle will appear wherever needed.",
+    "version": "v0.1.0",
     "commands": [
         {
             "verb": "client",
@@ -21,16 +22,19 @@
                         {
                             "fullName": "host",
                             "shortName": "h",
+                            "type": "string",
                             "desc": "listen to the specified host"
                         },
                         {
                             "fullName": "port",
                             "shortName": "p",
+                            "type": "int",
                             "desc": "listen to the specified port"
                         },
                         {
                             "fullName": "target",
                             "shortName": "t",
+                            "type": "string",
                             "desc": "run on target platform"
                         }
                     ],
@@ -53,11 +57,13 @@
                         {
                             "fullName": "host",
                             "shortName": "h",
+                            "type": "string",
                             "desc": "listen to the specified host"
                         },
                         {
                             "fullName": "port",
                             "shortName": "p",
+                            "type": "int",
                             "desc": "listen to the specified port"
                         }
                     ],
@@ -65,6 +71,7 @@
                         {
                             "fullName": "config",
                             "shortName": "c",
+                            "type": "string",
                             "desc": "start with config"
                         }
                     ],
@@ -75,6 +82,14 @@
         {
             "verb": "log",
             "shortDesc": "",
+            "longDesc": "",
+            "persistentFlags": [],
+            "localFlags": [],
+            "subCommands": []
+        },
+        {
+            "verb": "version",
+            "shortDesc": "show puzzle version",
             "longDesc": "",
             "persistentFlags": [],
             "localFlags": [],
