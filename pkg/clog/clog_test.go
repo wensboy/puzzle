@@ -32,3 +32,17 @@ func Test_clog_extension(t *testing.T) {
 	Warn("warn message")
 	Error("error message")
 }
+
+// test change log level [passed]
+func Test_change_level(t *testing.T) {
+	DefaultLevel(DEBUG)
+	Debug("debug message")
+	Info("info message")
+	Warn("warn message")
+	Error("error message")
+	DefaultLevel(WARN)
+	Debug("debug message")
+	Info("info message")
+	Warn("warn message")
+	Error("error message")
+}

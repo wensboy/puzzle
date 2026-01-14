@@ -72,8 +72,7 @@ var (
 		where user_id = :user_id
 		`,
 		`
-		select user_name, user_password
-		from user_basic
+		select user_name, user_password from user_basic
 		where user_name like ? and deleted = 0
 		`,
 		`

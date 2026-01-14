@@ -21,14 +21,15 @@ var (
 )
 
 type (
+	// Functional echo server configuration.
 	EchoServerOption func(es *EchoServer)
-	EchoServer       struct {
+	// web server echo encapsulation
+	EchoServer struct {
 		webServer[*echo.Echo]
-		// Echo Context...
+		// More Echo Context...
 	}
 )
 
-// gain a default Echo server
 func InitEchoServer() *EchoServer {
 	e := echo.New()
 	// some default config for echo instance
@@ -65,6 +66,8 @@ func InitEchoServer() *EchoServer {
 	return es
 }
 
+// MountRoute return the default gateway to mount the specified echo instance.
+// The Gateway Routing from prefix==""
 func (es *EchoServer) MountRoute() router.Route[router.EchoPack] {
 	clog.Info("mount route for echo server.")
 	return router.NewEchoGateway(es.h)

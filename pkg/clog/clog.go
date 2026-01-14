@@ -1,3 +1,4 @@
+// Package clod provide a simple colorable log.
 package clog
 
 import (
@@ -17,50 +18,41 @@ import (
 	"github.com/wendisx/puzzle/pkg/palette"
 )
 
-/*
-	clog -- colorable logger
-	idea:
-	slog 只能在-4~8范围限定日志级别, 内置日志级别为debug,info,warn,error, 可以灵活拓展实现多级日志.
-	为了很好地结合color库, 尝试假定: 头[debug,info,warn,error]等需要加入颜色处理, 但是在结构化下,
-	任何日志属性多少会被转化为key和value存在的形式, 因此颜色只在非结构化的情况下启动. 颜色应当是具体处理器的行为.
-	一个标准的日志器只存储和日志相关的部分, 和处理器无关的部分.
-	logger: golang slog源代码中, logger.log(...)直接通过handler.Enabled(...)过滤掉了record的构建. 作为日志前端,
-	主要人物就是处理前端行为的切换, 鉴于logger中的log方法的实现, 前端不持有level切换行为.
-	handler:
-*/
-
 const (
-	_format_debug = "DEBUG" // -4
-	_format_info  = "INFO"  // 0
-	_format_warn  = "WARN"  // 4
-	_format_error = "ERROR" // 8
-	_format_panic = "PANIC" // 8 and panic
-	_format_fatal = "FATAL" // 8 and os.exit(1)
-
+	_format_debug   = "DEBUG"
+	_format_info    = "INFO"
+	_format_warn    = "WARN"
+	_format_error   = "ERROR"
+	_format_panic   = "PANIC"
+	_format_fatal   = "FATAL"
 	_format_default = "???"
 
-	// can extend some log level
-	DEBUG                   = slog.LevelDebug
-	INFO                    = slog.LevelInfo
-	WARN                    = slog.LevelWarn
-	ERROR                   = slog.LevelError
-	PANIC          LogLevel = 9
-	FATAL          LogLevel = 10
-	_max_level              = 1 << 5
-	_offset_level           = 1 << 2
-	_default_level          = INFO
+	_max_level    = 1 << 5
+	_offset_level = 1 << 2
 
-	_default_skip_step = 4
+	// caller(exactly need to show) -> caller(clog) -> clog.Log() -> logger.log() -> runtime.Caller -> extern low level
+	_default_skip_step = 5
 	_default_template  = `{_temp_timestamp} {_temp_shortpath}:{_temp_linenum} [{_temp_level}] {_temp_prefix}`
+)
 
+const (
 	/* internal record info */
-	TEMP_LONGPATH  = "_temp_longpath"
-	TEMP_SHORTPATH = "_temp_shortpath"
-	TEMP_LINENUM   = "_temp_linenum"
-	TEMP_PREFIX    = "_temp_prefix"
-	TEMP_LEVEL     = "_temp_level"
+	TEMP_LONGPATH  = "_temp_longpath"  // long file path
+	TEMP_SHORTPATH = "_temp_shortpath" // short file path
+	TEMP_LINENUM   = "_temp_linenum"   // line number
+	TEMP_PREFIX    = "_temp_prefix"    //  log prefix
+	TEMP_LEVEL     = "_temp_level"     // log level
+	/* external record info */
+	TEMP_TIMESTAMP = "_temp_timestamp" // log time stamp
+)
 
-	TEMP_TIMESTAMP = "_temp_timestamp"
+const (
+	DEBUG          = slog.LevelDebug // same as slog
+	INFO           = slog.LevelInfo  // same as slog
+	WARN           = slog.LevelWarn  // same as slog
+	ERROR          = slog.LevelError // same as slog
+	PANIC LogLevel = 9               // slog.Level(9)
+	FATAL LogLevel = 10              // slog.Level(10)
 )
 
 var (
@@ -71,32 +63,38 @@ var (
 	_fg_panic = palette.RGB_PURPLE // base purple
 	_fg_fatal = palette.RGB_GREY   // base grey
 
+	_default_level  = INFO
 	_default_logger *Logger
 )
 
 type (
-	// level
 	LogLevel = slog.Level
+	// TempFunc is a function type to define a template function
 	TempFunc func() string
-	// handler -- colorable plain text
+	// PlainTextHandler is colorable plain text handler.
 	// no attrs store here, it's useless.
 	PlainTextHandler struct {
 		colorable bool
 		color     *color.Color           // color instance
-		colordict []palette.RGB          // 颜色字典
-		temparser *fasttemplate.Template // parser
+		colordict []palette.RGB          // color dict
+		temparser *fasttemplate.Template // parser to parse the log template
 		tempdict  map[string]TempFunc    // get template string from here
-		level     *slog.LevelVar         // 用于动态切换level
+		level     *slog.LevelVar         // switch log level dynamically
 		out       io.Writer
-		bufs      *sync.Pool // buf缓冲池
+		bufs      *sync.Pool // buffer pool
 	}
-	// logger
-	// 日志无法确认为是否需要为结构化或者非结构化, 这在slog中直接依赖handler的行为, 这是很糟糕但是合理的.
+	// Logger provide public api to record message.
 	Logger struct {
 		h        slog.Handler
 		skipstep int
 	}
 )
+
+// DefaultLevel update global log level dynamically.
+func DefaultLevel(lv LogLevel) {
+	_default_level = lv
+	_default_logger = NewLogger(NewPlainTextHandler(os.Stderr, _default_level, _default_template))
+}
 
 func init() {
 	_default_logger = NewLogger(NewPlainTextHandler(os.Stderr, _default_level, _default_template))
@@ -110,10 +108,13 @@ func _format_prefix() string {
 	return "-"
 }
 
+// SetDefault update global logger with l.
 func SetDefault(l *Logger) {
 	_default_logger = l
 }
 
+// NewPlainTextHandler return a new hanlder of PlainTextHandler. Is's an internal and default handler.
+// minLevel controls the minmum output log level.
 func NewPlainTextHandler(out io.Writer, minLevel LogLevel, template string) *PlainTextHandler {
 	td := make(map[string]TempFunc) // custom string from outer
 	td[TEMP_PREFIX] = _format_prefix
@@ -152,15 +153,18 @@ func NewPlainTextHandler(out io.Writer, minLevel LogLevel, template string) *Pla
 	}
 }
 
-// 非并发安全执行
+// With record the template building process and wait for log parsing to be called.
+// It's not concurrency safe.
 func (h *PlainTextHandler) With(key string, value TempFunc) {
 	h.tempdict[key] = value
 }
 
+// SetLogLevel set log level for specific handler.
 func (h *PlainTextHandler) SetLogLevel(newLevel LogLevel) {
 	h.level.Set(newLevel)
 }
 
+// from slog, same as slog.
 func (h *PlainTextHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return level >= h.level.Level()
 }
@@ -193,8 +197,8 @@ func (h *PlainTextHandler) replaceLevel(level *slog.LevelVar) []byte {
 	return []byte(levelStr)
 }
 
+// from slog, same as slog.
 func (h *PlainTextHandler) Handle(ctx context.Context, r slog.Record) error {
-	// 确保日志级别一致
 	if r.Level < h.level.Level() {
 		return nil
 	}
@@ -239,14 +243,18 @@ func (h *PlainTextHandler) Handle(ctx context.Context, r slog.Record) error {
 	return nil
 }
 
+// from slog, same as slog.
 func (h *PlainTextHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return h
 }
 
+// from slog, same as slog.
 func (h *PlainTextHandler) WithGroup(name string) slog.Handler {
 	return h
 }
 
+// NewLogger return pointer to new logger.
+// It should take a valid slog.Handler.
 func NewLogger(h slog.Handler) *Logger {
 	if h == nil {
 		panic("nil handler!")
@@ -288,9 +296,6 @@ func (l *Logger) log(ctx context.Context, level LogLevel, msg string, args ...an
 	_ = l.Handler().Handle(ctx, r)
 }
 
-/*
--- logger methods
-*/
 func (l *Logger) Log(ctx context.Context, level LogLevel, msg string, args ...any) {
 	l.log(ctx, level, msg, args...)
 }
@@ -347,9 +352,6 @@ func (l *Logger) FatalX(ctx context.Context, msg string, args ...any) {
 	os.Exit(1)
 }
 
-/*
--- public functions
-*/
 func Log(ctx context.Context, level LogLevel, msg string, args ...any) {
 	_default_logger.Log(ctx, level, msg, args...)
 }

@@ -2,7 +2,7 @@ package palette
 
 const (
 	HEX_DEFAULT = ""
-	// red class
+	// red
 	HEX_LIGHTSALMON   = "#FFA07A"
 	HEX_SALMON        = "#FA8072"
 	HEX_DARKSALMON    = "#E9967A"
@@ -17,7 +17,7 @@ const (
 	HEX_ORANGERED     = "#FF4500"
 	HEX_PALEVIOLETRED = "#DB7093"
 
-	// blue class
+	// blue
 	HEX_ALICEBLUE       = "#F0F8FF"
 	HEX_LAVENDER        = "#E6E6FA"
 	HEX_POWDERBLUE      = "#B0E0E6"
@@ -42,7 +42,7 @@ const (
 	HEX_BLUEVIOLET      = "#8A2BE2"
 	HEX_INDIGO          = "#4B0082"
 
-	// cyan class
+	// cyan
 	HEX_LIGHTCYAN        = "#E0FFFF"
 	HEX_CYAN             = "#00FFFF"
 	HEX_AQUA             = "#00FFFF"
@@ -76,7 +76,7 @@ const (
 	HEX_DARKOLIVEGREEN    = "#556B2F"
 	HEX_OLIVEDRAB         = "#6B8E23"
 
-	// grey class
+	// grey
 	HEX_GAINSBORO      = "#DCDCDC"
 	HEX_LIGHTGREY      = "#D3D3D3"
 	HEX_SILVER         = "#C0C0C0"
@@ -88,14 +88,14 @@ const (
 	HEX_DARKSLATEGREY  = "#2F4F4F"
 	HEX_BLACK          = "#000000"
 
-	// orange class
+	// orange
 	HEX_BROWN      = "#A52A2A"
 	HEX_CORAL      = "#FF7F50"
 	HEX_GOLD       = "#FFD700"
 	HEX_ORANGE     = "#FFA500"
 	HEX_DARKORANGE = "#FF8C00"
 
-	// pink class
+	// pink
 	HEX_PINK            = "#FFC0CB"
 	HEX_LIGHTPINK       = "#FFB6C1"
 	HEX_HOTPINK         = "#FF69B4"
@@ -298,9 +298,15 @@ var (
 )
 
 type (
+	// RGB store color.
 	RGB struct {
 		R uint8
 		G uint8
 		B uint8
+	}
+	// RGBA store color with alpha.
+	RGBA struct {
+		RGB
+		A uint8
 	}
 )
