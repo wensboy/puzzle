@@ -14,19 +14,22 @@ type (
 	NullString  struct{ sql.NullString }
 	NullTime    struct{ sql.NullTime }
 
+	// Page is used for paginated queries.
 	Page[T any] struct {
-		CurrentPage int `json:"current_page"`
-		PageSize    int `json:"page_size"`
-		Total       int `json:"total"`
-		Items       []T `json:"items"`
+		CurrentPage int `json:"current_page"` // current page to calculate offset
+		PageSize    int `json:"page_size"`    // page size
+		Total       int `json:"total"`        // total records obtained
+		Items       []T `json:"items"`        // list of records
 	}
 
+	// MysqlMeta is mysql attribute-independent metadata structure.
+	// It is generally used as an embedded structure.
 	MysqlMeta struct {
-		Id        uint64    `db:"id"`         // unsigned bigint
-		ExternId  []byte    `db:"extern_id"`  // binary(16)
-		CreatedAt time.Time `db:"created_at"` // datetime
-		UpdatedAt time.Time `db:"updated_at"` // datetime
-		Deleted   bool      `db:"deleted"`    // tinyint(1)
+		Id        uint64    `db:"id"`         // primary key
+		ExternId  []byte    `db:"extern_id"`  // extern id as foreign key
+		CreatedAt time.Time `db:"created_at"` // created time
+		UpdatedAt time.Time `db:"updated_at"` // updated time
+		Deleted   bool      `db:"deleted"`    // deleted or not
 	}
 )
 
@@ -125,9 +128,7 @@ func (nf NullFloat64) Float64Value() *float64 {
 
 func (nf NullFloat64) NewNullFloat64(f *float64) NullFloat64 {
 	if f == nil {
-		return NullFloat64{
-			sql.NullFloat64{Valid: false},
-		}
+		return NullFloat64{sql.NullFloat64{Valid: false}}
 	}
 	return NullFloat64{
 		sql.NullFloat64{
@@ -179,6 +180,7 @@ func NewNullTime(t *time.Time) NullTime {
 	}
 }
 
+// Offset return the starting offset accroding to current page and page size.
 func (p *Page[T]) Offset() int {
 	return (p.CurrentPage - 1) * p.PageSize
 }

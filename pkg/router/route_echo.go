@@ -9,10 +9,6 @@ import (
 	"github.com/wendisx/puzzle/pkg/palette"
 )
 
-/*
-	echo route impl
-*/
-
 const (
 	_default_echo_gateway = ""
 )
@@ -22,21 +18,25 @@ var (
 )
 
 type (
+	// EchoPack with Pack
 	EchoPack struct {
 		P Pack
 		G *echo.Group
 	}
+	// EchoRoute Receive, process, forward, route EchoPack.
 	EchoRoute struct {
 		ep     EchoPack
-		path   string            // for self
+		path   string            // for self path
 		qroute []Route[EchoPack] // next route queue
 		qpeer  []Peer[EchoPack]  // next peer queue
 	}
+	// EchoPeer hold all endpoints and call Parse to mount the whole endpoints.
 	EchoPeer struct {
 		qendpoint []Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]
 	}
+	// EchoGateway always the first route starting routing.
 	EchoGateway struct {
-		EchoRoute
+		EchoRoute // start from prefix = ""
 	}
 )
 
@@ -47,7 +47,6 @@ func NewEchoPack(p Pack, g *echo.Group) EchoPack {
 	}
 }
 
-// as an embedded to implement Route[Pack]
 func NewEchoRoute(path string) *EchoRoute {
 	if path == "" {
 		clog.Warn("<pkg.router.echo> Empty path route exists.")
@@ -57,9 +56,8 @@ func NewEchoRoute(path string) *EchoRoute {
 	}
 }
 
-// return the single instance of EchoPack
+// DefaultEchoPack return the single instance of EchoPack
 func DefaultEchoPack(e *echo.Echo) EchoPack {
-	// 确保所有 group from default root
 	if _default_echopack == nil {
 		_default_echopack = &EchoPack{
 			P: Pack{
@@ -71,7 +69,7 @@ func DefaultEchoPack(e *echo.Echo) EchoPack {
 	return *_default_echopack
 }
 
-// return a new EchoRoot to start all
+// NewEchoGateway return a new EchoRoot to start all
 func NewEchoGateway(e *echo.Echo) Route[EchoPack] {
 	er := &EchoGateway{
 		*NewEchoRoute(_default_echo_gateway),
@@ -80,9 +78,7 @@ func NewEchoGateway(e *echo.Echo) Route[EchoPack] {
 	return er
 }
 
-// can override to block route and peer
 func (r *EchoRoute) Active() bool {
-	// clog.Warn("<pkg.router.echo> Call default Active function, this method should be explicitly overridden.")
 	return true
 }
 
@@ -90,12 +86,12 @@ func (r *EchoRoute) Path() string {
 	return r.path
 }
 
-// should override and call it in Inbound()
+// Handle should be overridden and called in Inbound.
 func (r *EchoRoute) Handle(p EchoPack) {
 	clog.Warn("<pkg.router.echo> Call default Handle function, this method should be explicitly overridden.")
 }
 
-// transform EchoPack and update path prefix
+// Inbound update EchoPack context and wait to send them out.
 func (r *EchoRoute) Inbound(p EchoPack) {
 	if !r.Active() {
 		return
@@ -119,7 +115,7 @@ func (r *EchoRoute) ToPeer(p Peer[EchoPack]) {
 	r.qpeer = append(r.qpeer, p)
 }
 
-// go out route and routing EchoPack
+// Outbound send EchoPack to subnode.
 func (r *EchoRoute) Outbound() {
 	if !r.Active() {
 		return
@@ -146,7 +142,7 @@ func (p *EchoPeer) ToEndpoint(ep Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]
 	p.qendpoint = append(p.qendpoint, ep)
 }
 
-// mount all endpoints
+// Parse parse all endpoints to the instance of global echo
 func (p EchoPeer) Parse(pp EchoPack) {
 	if len(p.qendpoint) == 0 {
 		clog.Warn("<pkg.router.echo> Call default Mount function, this method should be explicitly overridden and is eventually called.")

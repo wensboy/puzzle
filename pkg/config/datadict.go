@@ -10,49 +10,30 @@ import (
 	"github.com/wendisx/puzzle/pkg/palette"
 )
 
-/*
-	DataDict -- a simple internal data collection
-	1. Allows the creation of custom data dictionaries, but this is just a wrapper for ttlcache.
-	2. An extremely simple dictionary processing design, relying on generics and assertion design.
-*/
-
-const (
-	// some default key from internal, exactly I'd like to got them from some .json files. :)
-	_dict_capacity = 1 << 10
-
-	DICTKEY_CONFIG  = "_dict_config_"
-	DICTKEY_COMMAND = "_dict_command"
-
-	DATAKEY_CONFIG = "_data_config_"
-	DATAKEY_ENV    = "_data_env_"
-	DATAKEY_CLI    = "_data_cli_"
-)
-
 var (
 	_dict_directory *DictDirectory
 	_dict_timeout   = 10 * time.Minute
 )
 
 type (
-	DictKey       string
+	DictKey string
+	// DictDirectory store the whole dicts.
 	DictDirectory struct {
 		qdict sync.Map
 	}
+	// DataDict store data with string key.
 	DataDict[V any] struct {
 		name string
 		dict *ttlcache.Cache[string, V]
 	}
 )
 
-func init() {
-	_dict_directory = new(DictDirectory)
-}
-
+// PutDict put dict into dict directory.
 func PutDict(k DictKey, dict DataDict[any]) {
 	_dict_directory.record(string(k), dict)
 }
 
-// panic from  .get(k)
+// GetDict return dict with specific key and will panic if not exists the dict.
 func GetDict(k DictKey) DataDict[any] {
 	dd, found := _dict_directory.find(string(k))
 	if !found {
@@ -61,6 +42,7 @@ func GetDict(k DictKey) DataDict[any] {
 	return dd
 }
 
+// HasDict report whether dict with specific key is in directory.
 func HasDict(k DictKey) bool {
 	_, found := _dict_directory.find(string(k))
 	return found
@@ -79,12 +61,12 @@ func (ds *DictDirectory) find(k string) (DataDict[any], bool) {
 	return DataDict[any]{}, false
 }
 
-// next dict ttl config
+// NextDictTTL set ttl used by next dict.
 func NextDictTTL(ttl time.Duration) {
 	_dict_timeout = ttl
 }
 
-// common usage data dict
+// NewDataDict return a data dict with string key.
 func NewDataDict[V any](name DictKey) DataDict[V] {
 	dd := ttlcache.New(
 		ttlcache.WithCapacity[string, V](_dict_capacity),
@@ -96,6 +78,7 @@ func NewDataDict[V any](name DictKey) DataDict[V] {
 	}
 }
 
+// Name return the dict's dict key from dict directory.
 func (dd *DataDict[V]) Name() DictKey {
 	return DictKey(dd.name)
 }
@@ -105,11 +88,16 @@ func (dd *DataDict[V]) Record(k string, v V) {
 	clog.Info(fmt.Sprintf("put data_key(%s) into dict_key(%s)", palette.SkyBlue(k), palette.SkyBlue(dd.name)))
 }
 
+// Find return Item with specific key and will panic if not exists the data.
 func (dd *DataDict[V]) Find(k string) *ttlcache.Item[string, V] {
 	if !dd.dict.Has(k) {
 		clog.Panic(fmt.Sprintf("from dict_key(%s) can't find data_key(%s)", palette.Red(dd.name), palette.Red(k)))
 	}
 	return dd.dict.Get(k)
+}
+
+func (dd *DataDict[V]) Has(k string) bool {
+	return dd.dict.Has(k)
 }
 
 func (dd *DataDict[V]) Remove(k string) {

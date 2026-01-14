@@ -44,6 +44,10 @@ func mountRoot() *cobra.Command {
 	return rootCmd
 }
 
+// Instruction execution entry.
+// mountFunc represents that the root command is passed into this method,
+// which is used to expand the mounting custom command set.
+// There are some default internal mount method, like [mountVersion] etc.
 func Execute(mountFuncs ...func(*cobra.Command)) {
 	rootCmd := mountRoot()
 	mountVersion(rootCmd)

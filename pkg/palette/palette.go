@@ -1,13 +1,9 @@
+// Package palette color correction for content.
 package palette
 
 import (
 	"github.com/fatih/color"
 )
-
-/*
-	palette -- for fatih/color to quick make some great string.
-	1. so simple for some simplest task.
-*/
 
 var (
 	_default_palette *Palette
@@ -19,6 +15,7 @@ var (
 )
 
 type (
+	// Palette record color usage and mixing.
 	Palette struct {
 		FgRgb RGB
 		BgRgb RGB
@@ -42,7 +39,6 @@ func NewPalette() *Palette {
 	return p
 }
 
-// some common color mark
 func Red(args ...any) string {
 	return _default_palette.Put(RGB_RED, RGB_DEFAULT).Sprint(args...)
 }
@@ -67,7 +63,6 @@ func White(args ...any) string {
 	return _default_palette.Put(RGB_WHITE, RGB_DEFAULT).Sprint(args...)
 }
 
-// it looks like black color is the same with white...
 func Black(args ...any) string {
 	return _default_palette.Put(RGB_BLACK, RGB_DEFAULT).Sprint(args...)
 }

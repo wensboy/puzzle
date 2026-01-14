@@ -31,31 +31,34 @@ var (
 )
 
 type (
+	// Flag store flag information.
 	Flag struct {
-		FullName  string `json:"fullName"`
-		ShortName string `json:"shortName"`
-		Type      string `json:"type"`
-		Desc      string `json:"desc"`
+		FullName  string `json:"fullName"`  //  full name
+		ShortName string `json:"shortName"` //  short name
+		Type      string `json:"type"`      //  value type
+		Desc      string `json:"desc"`      // description
 	}
+	// Command store command information.
 	Command struct {
-		Verb      string `json:"verb"`
-		ShortDesc string `json:"shortDesc"`
-		LongDesc  string `json:"longDesc"`
-		// localFlags Just collect the names and
-		// aliases of local parameters and usage descriptionsw.
-		PersistentFlags []Flag    `json:"persistentFlags"`
-		LocalFlags      []Flag    `json:"localFlags"`
-		SubCommand      []Command `json:"subCommands"`
+		Verb            string    `json:"verb"`            // called verb
+		ShortDesc       string    `json:"shortDesc"`       // short description for verb
+		LongDesc        string    `json:"longDesc"`        // long description for verb
+		PersistentFlags []Flag    `json:"persistentFlags"` // persistent flags for current command
+		LocalFlags      []Flag    `json:"localFlags"`      // local flags for current command
+		SubCommand      []Command `json:"subCommands"`     // subcommands for current command
 	}
+	// Cli is the standard format after parsing the command file.
 	Cli struct {
-		App      string    `json:"app"`
-		Entry    []string  `json:"entry"`
-		Version  string    `json:"version"`
-		Intro    string    `json:"intro"`
-		Commands []Command `json:"commands"`
+		App      string    `json:"app"`      // cli name used for root command
+		Entry    []string  `json:"entry"`    // execute entry, like Package main.
+		Version  string    `json:"version"`  // cli version
+		Intro    string    `json:"intro"`    // cli introduction
+		Commands []Command `json:"commands"` // all cli commands
 	}
 )
 
+// LoadCmd parse the specified file to the cli instance and
+// build the instruction dictionary.
 func LoadCmd(path string) *Cli {
 	if path == "" {
 		path = _default_command_path
@@ -86,6 +89,7 @@ func LoadCmd(path string) *Cli {
 	return &cli
 }
 
+// GetCmd return the pointer to Cli from config dict and will panic if not exists Cli.
 func GetCmd() *Cli {
 	configDict := config.GetDict(config.DICTKEY_CONFIG)
 	cli, ok := configDict.Find(config.DATAKEY_CLI).Value().(*Cli)
@@ -95,6 +99,8 @@ func GetCmd() *Cli {
 	return cli
 }
 
+// GetCommand return the cobra's Command from command dict and will panic if not exists the specific verb.
+// It will set internal command dict cache in package cli.
 func GetCommand(verb string, delimiter string) *cobra.Command {
 	// todo: delimiter == ["-", "_"]?
 	cmdKey := verb
@@ -109,6 +115,7 @@ func GetCommand(verb string, delimiter string) *cobra.Command {
 	return ccmd
 }
 
+// ParsePersistenFlags return the list for persistent flag of specific verb. No panic here.
 func ParsePersistenFlags(verb string, delimiter string, entry *Cli) []Flag {
 	if entry == nil {
 		clog.Error(fmt.Sprintf("from invalid cli entry find verb(%s) persistent flags", palette.Red(verb)))
@@ -124,6 +131,7 @@ func ParsePersistenFlags(verb string, delimiter string, entry *Cli) []Flag {
 	return nil
 }
 
+// ParseLocalFlags return the list for local flag of specific verb. No panic here.
 func ParseLocalFlags(verb string, delimiter string, entry *Cli) []Flag {
 	if entry == nil {
 		clog.Error(fmt.Sprintf("from invalid cli entry find verb(%s) local flags", palette.Red(verb)))
