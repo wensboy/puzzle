@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	_ "github.com/wendisx/puzzle/docs"
 	"github.com/wendisx/puzzle/pkg/router"
 )
 
@@ -26,6 +27,7 @@ func (sp *ServerPeer) Parse(p router.EchoPack) {
 	sp.EchoPeer.Parse(p)
 }
 
+// test basic echo server [passed]
 func Test_echo(t *testing.T) {
 	s := InitEchoServer()
 	rr := s.MountRoute()
@@ -33,6 +35,15 @@ func Test_echo(t *testing.T) {
 		router.EchoPeer{},
 	}
 	rr.ToPeer(sp)
+	rr.Outbound()
+	s.Start()
+}
+
+// test swagger server []
+func Test_swagger(t *testing.T) {
+	// test echo swagger []
+	s := InitEchoServer()
+	rr := s.MountSwagRoute()
 	rr.Outbound()
 	s.Start()
 }
