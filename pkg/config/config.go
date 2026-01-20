@@ -18,13 +18,20 @@ const (
 	/* dictionary key to find dictionary */
 	DICTKEY_CONFIG  = "_dict_config_"
 	DICTKEY_COMMAND = "_dict_command"
+	DICTKEY_SERVER  = "_dict_server_"
+	DICTKEY_SERVICE = "_dict_service_"
+	DICTKEY_CLIENT  = "_dict_client_"
 )
 
 const (
 	/* data key to fing data */
-	DATAKEY_CONFIG = "_data_config_"
-	DATAKEY_ENV    = "_data_env_"
-	DATAKEY_CLI    = "_data_cli_"
+	DATAKEY_CONFIG           = "_data_config_"
+	DATAKEY_ENV              = "_data_env_"
+	DATAKEY_CLI              = "_data_cli_"
+	DATAKEY_SERVER_ECHO      = "_data_server_echo_"
+	DATAKEY_PERMISSION_TABLE = "_data_permission_table_"
+	DATAKEY_PERMISSION_USER  = "_data_permission_user_"
+	DATAKEY_DB_REDIS         = "_data_db_redis"
 )
 
 var (

@@ -84,7 +84,7 @@ func (es *EchoServer) MountRoute() router.Route[router.EchoPack] {
 // MountCheckRoute return the route after mounting check route.
 // Nothing to do if flag check is false.
 func (es *EchoServer) MountCheckRoute() router.Route[router.EchoPack] {
-	gateway := es.MountRoute()
+	es.gateway = es.MountRoute()
 	checkPeer := router.EchoPeer{}
 	checkPeer.ToEndpoint(router.Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]{
 		Method: http.MethodGet,
@@ -94,15 +94,15 @@ func (es *EchoServer) MountCheckRoute() router.Route[router.EchoPack] {
 		},
 		PreHandlers: nil,
 	})
-	gateway.ToPeer(checkPeer)
+	es.gateway.ToPeer(checkPeer)
 	clog.Info("mount check peer for echo server.")
-	return gateway
+	return es.gateway
 }
 
 // MountSwagRoute return the route after mounting swagger route.
 // Nothing to do if flag swag is false.
 func (es *EchoServer) MountSwagRoute() router.Route[router.EchoPack] {
-	gateway := es.MountRoute()
+	es.gateway = es.MountRoute()
 	swagPeer := router.EchoPeer{}
 	swagPeer.ToEndpoint(router.Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]{
 		Method:      http.MethodGet,
@@ -110,9 +110,9 @@ func (es *EchoServer) MountSwagRoute() router.Route[router.EchoPack] {
 		Handler:     echoSwagger.WrapHandler,
 		PreHandlers: nil,
 	})
-	gateway.ToPeer(swagPeer)
+	es.gateway.ToPeer(swagPeer)
 	clog.Info("mount swag peer for echo server.")
-	return gateway
+	return es.gateway
 }
 
 func (es *EchoServer) SetupEchoServer(opts ...EchoServerOption) {
@@ -140,4 +140,13 @@ func (es *EchoServer) WithSwagRoute(swag bool) {
 	if swag {
 		_ = es.MountSwagRoute()
 	}
+}
+
+func (es *EchoServer) WithRoute(r any) {
+	es.gateway = es.MountRoute()
+	er, ok := r.(router.Route[router.EchoPack])
+	if !ok {
+		clog.Panic("invalid route for echo server")
+	}
+	es.gateway.ToRoute(er)
 }
