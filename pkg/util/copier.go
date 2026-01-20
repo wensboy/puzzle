@@ -48,27 +48,36 @@ func NewCopier(srcType, destType reflect.Type) *Copier {
 	if destType.Kind() == reflect.Pointer {
 		destType = destType.Elem()
 	}
-	// 对于dest中的字段尽可能在src中找到源
-	for i := 0; i < destType.NumField(); i += 1 {
-		df := destType.Field(i)
-		sf, ok := srcType.FieldByName(df.Name)
-		// 没找到跳过字段
-		if !ok || !df.IsExported() {
-			continue
-		}
-		if sf.Type.AssignableTo(df.Type) {
-			fns = append(fns, func(dest, src reflect.Value) {
-				dest.FieldByName(df.Name).Set(src.FieldByName(df.Name))
-			})
-		} else if sf.Type.ConvertibleTo(df.Type) {
-			fns = append(fns, func(dest, src reflect.Value) {
-				dest.FieldByName(df.Name).Set(src.FieldByName(df.Name).Convert(df.Type))
-			})
+	var buildFns func(currDestType reflect.Type, indexPrefix []int)
+	buildFns = func(currDestType reflect.Type, indexPrefix []int) {
+		for i := 0; i < currDestType.NumField(); i++ {
+			df := currDestType.Field(i)
+			fullIndex := append(indexPrefix, i)
+			if df.Anonymous && df.Type.Kind() == reflect.Struct {
+				buildFns(df.Type, fullIndex)
+				continue
+			}
+			if !df.IsExported() {
+				continue
+			}
+			sf, ok := srcType.FieldByName(df.Name)
+			if !ok {
+				continue
+			}
+			idx := fullIndex
+			if sf.Type.AssignableTo(df.Type) {
+				fns = append(fns, func(dest, src reflect.Value) {
+					dest.FieldByIndex(idx).Set(src.FieldByName(df.Name))
+				})
+			} else if sf.Type.ConvertibleTo(df.Type) {
+				fns = append(fns, func(dest, src reflect.Value) {
+					dest.FieldByIndex(idx).Set(src.FieldByName(df.Name).Convert(df.Type))
+				})
+			}
 		}
 	}
-	return &Copier{
-		fns: fns,
-	}
+	buildFns(destType, []int{})
+	return &Copier{fns: fns}
 }
 
 func (c *Copier) Copy(dest, src interface{}) {
@@ -89,4 +98,17 @@ func (c *Copier) Copy(dest, src interface{}) {
 	for _, fn := range c.fns {
 		fn(destValue, srcValue)
 	}
+}
+
+func CopySlice[S, D any](src []S) []D {
+	if len(src) == 0 {
+		clog.Warn("try to copy slice, but src's length is zero.")
+		return []D{}
+	}
+	dest := make([]D, len(src))
+	cp := GetCopier(src[0], dest[0])
+	for i := range src {
+		cp.Copy(&dest[i], &src[i])
+	}
+	return dest
 }

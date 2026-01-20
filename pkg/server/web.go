@@ -27,6 +27,7 @@ type (
 	WebServer interface {
 		WithCheckRoute(check bool) // public set check
 		WithSwagRoute(swag bool)   // public set swagger
+		WithRoute(r any)           // public set route
 		Start()                    // starting server
 		Stop()                     // stopping server
 	}

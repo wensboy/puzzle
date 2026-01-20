@@ -18,7 +18,7 @@ func (m EchoMiddleware) SimpleJwtAuth() echo.MiddlewareFunc {
 			tokenStr := c.Request().Header.Get("Authorization")
 			clog.Debug(tokenStr)
 			if tokenStr == "" || !strings.HasPrefix(tokenStr, "Bearer ") {
-				return server.WithEchoRes().Err(http.StatusUnauthorized, "unauthorized")
+				return server.WithEchoRes().Err(http.StatusUnauthorized, server.MsgUnauthorized)
 			}
 			tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
 			jwtClaim, err := util.ParseToken(tokenStr)
@@ -35,15 +35,17 @@ func (m EchoMiddleware) SimpleJwtAuth() echo.MiddlewareFunc {
 }
 
 /* check middleware for echo */
-func (m EchoMiddleware) ParseAndCheckBody(s interface{}) echo.MiddlewareFunc {
+func (m EchoMiddleware) ParseAndCheckBody(enable bool, s interface{}) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if err := util.Bind(c, s); err != nil {
 				return server.WithEchoRes().Err(http.StatusBadRequest, "Invalid parameter passed")
 			}
-			err := util.GetGlobalValidator().Check(s)
-			if err != nil {
-				return server.WithEchoRes().Err(http.StatusBadRequest, "Parameter verification failed")
+			if enable {
+				err := util.GetGlobalValidator().Check(s)
+				if err != nil {
+					return server.WithEchoRes().Err(http.StatusBadRequest, "Parameter verification failed")
+				}
 			}
 			clog.Debug(fmt.Sprintf("%#v", s))
 			c.Set("body", s)
