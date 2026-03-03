@@ -6,7 +6,9 @@
 last updated: 2026.03.03 am
        intro: puzzle will appear wherever needed.
      version: v0.1.0-alpha
-      branch: optimize-alpha
+      branch: |
+              main
+              optimize-alpha
       detail: |
               [Concept & Reference]=> `pkg/readme.md`
                             [Tutor]=> `demo/readme.md`
