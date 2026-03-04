@@ -1,6 +1,6 @@
 ---
 author: "wendisx"
-last-updated: "2026/01/13 pm"
+last-updated: "2026/01/15 am"
 todo:
   - Improve the concept document
   - Improve the program design
@@ -45,6 +45,14 @@ Provides a certain degree of unified calling of the API.
 
 You need to **explicitly add the database type** you need, which means you need to know a lot of details, which is beneficial.
 
+The database driver can be found [here](https://go.dev/wiki/SQLDrivers).
+
+Integrated Database:
+- [Mysql](https://www.mysql.com)
+  - [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql)
+- [Sqlite](https://sqlite.org)
+  - [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)
+
 ## <a id="log">Log</a>
 
 Log provides the basic implementation of structured and unstructured logs, based on the standard `slog` package. The design concept is basically the same as
@@ -84,9 +92,28 @@ integrated into a single root command (the application), thus achieving CLI inte
 is for future research and preliminary design of multi-service launchers and reusable 
 templates.
 
+## <a id="integration">Integration</a>
+
+Integrate third-party API interfaces. 
+
+| third name | website | progress | usage | 
+|:----------:|:-------:|:--------:|:-----:|
+| echoSwagger | https://github.com/swaggo/echo-swagger | default | `server.EchoServer.MountSwagRoute()` |
+
 ## <a id="reference">Reference</a>
+
+### PUZZLE API
 
 The reference is generated using `go doc`. For more details about `go doc`, please see [here](https://go.dev/doc/comment). To browse the document locally, follow the steps below:
 
-```go
+```bash
+git clone git@github.com:wendisx/puzzle.git --depth=1
+cd ./puzzle
+go doc -http
 ```
+
+### REST API 
+
+You can use the [Swagger tool](https://github.com/swaggo/swag) to generate integrated Open API documentation and then mount 
+the specified routes on the server. This requires the integrated web framework to handle 
+it automatically, which is no different from the default integrated echo Swagger operation.

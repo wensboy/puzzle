@@ -15,15 +15,16 @@ import (
 func (m EchoMiddleware) SimpleJwtAuth() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			res := server.NewEchoResponder(c)
 			tokenStr := c.Request().Header.Get("Authorization")
 			clog.Debug(tokenStr)
 			if tokenStr == "" || !strings.HasPrefix(tokenStr, "Bearer ") {
-				return server.WithEchoRes().Err(http.StatusUnauthorized, "unauthorized")
+				return res.Error(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 			}
 			tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
 			jwtClaim, err := util.ParseToken(tokenStr)
 			if err != nil || !jwtClaim.Check() {
-				return server.WithEchoRes().Err(http.StatusUnauthorized, "invalid token")
+				return res.Error(http.StatusUnauthorized, "Invalid Token")
 			}
 			// TODO: to be optimized...
 			clog.Info(fmt.Sprintf("context.user{id=%s,name=%s}", string(jwtClaim.ExternId), jwtClaim.Name))
@@ -35,15 +36,18 @@ func (m EchoMiddleware) SimpleJwtAuth() echo.MiddlewareFunc {
 }
 
 /* check middleware for echo */
-func (m EchoMiddleware) ParseAndCheckBody(s interface{}) echo.MiddlewareFunc {
+func (m EchoMiddleware) ParseAndCheckBody(enable bool, s interface{}) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			res := server.NewEchoResponder(c)
 			if err := util.Bind(c, s); err != nil {
-				return server.WithEchoRes().Err(http.StatusBadRequest, "Invalid parameter passed")
+				return res.Error(http.StatusBadRequest, "Invalid Request Payload.")
 			}
-			err := util.GetGlobalValidator().Check(s)
-			if err != nil {
-				return server.WithEchoRes().Err(http.StatusBadRequest, "Parameter verification failed")
+			if enable {
+				err := util.GetGlobalValidator().Check(s)
+				if err != nil {
+					return res.Error(http.StatusBadRequest, "Parameter Verification Failed.")
+				}
 			}
 			clog.Debug(fmt.Sprintf("%#v", s))
 			c.Set("body", s)

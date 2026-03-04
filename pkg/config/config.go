@@ -18,13 +18,20 @@ const (
 	/* dictionary key to find dictionary */
 	DICTKEY_CONFIG  = "_dict_config_"
 	DICTKEY_COMMAND = "_dict_command"
+	DICTKEY_SERVER  = "_dict_server_"
+	DICTKEY_SERVICE = "_dict_service_"
+	DICTKEY_CLIENT  = "_dict_client_"
 )
 
 const (
 	/* data key to fing data */
-	DATAKEY_CONFIG = "_data_config_"
-	DATAKEY_ENV    = "_data_env_"
-	DATAKEY_CLI    = "_data_cli_"
+	DATAKEY_CONFIG           = "_data_config_"
+	DATAKEY_ENV              = "_data_env_"
+	DATAKEY_CLI              = "_data_cli_"
+	DATAKEY_SERVER_ECHO      = "_data_server_echo_"
+	DATAKEY_PERMISSION_TABLE = "_data_permission_table_"
+	DATAKEY_PERMISSION_USER  = "_data_permission_user_"
+	DATAKEY_DB_REDIS         = "_data_db_redis"
 )
 
 var (
@@ -33,17 +40,10 @@ var (
 
 // Config record record all possible configuration items.
 type Config struct {
+	EnvConfig    []string     `yaml:"environment"` // special environment config
 	DBConfig     DBConfig     `yaml:"database"`    // database config
 	ServerConfig ServerConfig `yaml:"server"`      // server config
-	EnvConfig    []string     `yaml:"environment"` // special environment config
-}
-
-func init() {
-	// init dict directory
-	_dict_directory = new(DictDirectory)
-	// init config dict here.
-	configDict := NewDataDict[any](DICTKEY_CONFIG)
-	PutDict(configDict.Name(), configDict)
+	SwagConfig   SwagConfig   `yaml:"swagger"`     // swagger config
 }
 
 // DefaultConfigFile set global default config file.
@@ -53,6 +53,13 @@ func DefaultConfigFile(path string) {
 
 // LoadConfig return a pointer to all config and will panic if not exists the file path.
 func LoadConfig(path string) *Config {
+	// init dict directory
+	if _dict_directory == nil {
+		_dict_directory = new(DictDirectory)
+	}
+	// init config dict here.
+	configDict := NewDataDict[any](DICTKEY_CONFIG)
+	PutDict(configDict.Name(), configDict)
 	c := &Config{
 		DBConfig:     initDBConfig(),
 		ServerConfig: initServerConfig(),
@@ -65,7 +72,6 @@ func LoadConfig(path string) *Config {
 		return c
 	}
 	// put Config into data dict
-	configDict := GetDict(DICTKEY_CONFIG)
 	configDict.Record(DATAKEY_CONFIG, c)
 	return c
 }
