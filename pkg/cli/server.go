@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wendisx/puzzle/pkg/clog"
+	"github.com/wendisx/puzzle/pkg/router"
 	"github.com/wendisx/puzzle/pkg/server"
 )
 
@@ -30,8 +31,12 @@ func mountServer(rootCmd *cobra.Command) {
 			return err
 		}
 		server := server.InitWebServer(hf)
-		server.WithCheckRoute(checkf)
-		server.WithSwagRoute(swagf)
+		if checkf {
+			server.WithPeer(router.NewEchoCheckPeer())
+		}
+		if swagf {
+			server.WithPeer(router.NewEchoSwagPeer())
+		}
 		server.Start()
 		return nil
 	}

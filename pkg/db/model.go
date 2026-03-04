@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type (
@@ -26,7 +28,7 @@ type (
 	// It is generally used as an embedded structure.
 	MysqlMeta struct {
 		Id        uint64    `db:"id"`         // primary key
-		ExternId  []byte    `db:"extern_id"`  // extern id as foreign key
+		ExternId  uuid.UUID `db:"extern_id"`  // extern id as foreign key
 		CreatedAt time.Time `db:"created_at"` // created time
 		UpdatedAt time.Time `db:"updated_at"` // updated time
 		Deleted   bool      `db:"deleted"`    // deleted or not
@@ -35,7 +37,7 @@ type (
 	// It is generally used as an embedded structure.
 	SqliteMeta struct {
 		Id        uint64    `db:"id"`         // primary key
-		ExternId  []byte    `db:"extern_id"`  // extern id as foreign key
+		ExternId  uuid.UUID `db:"extern_id"`  // extern id as foreign key
 		CreatedAt time.Time `db:"created_at"` // created time
 		UpdatedAt time.Time `db:"updated_at"` // updated time
 		Deleted   bool      `db:"deleted"`    // deleted or not

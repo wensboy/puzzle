@@ -2,15 +2,21 @@ package router
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"github.com/wendisx/puzzle/pkg/clog"
 	"github.com/wendisx/puzzle/pkg/palette"
 )
 
 const (
 	_default_echo_gateway = ""
+
+	// default peers or routes path
+	_echo_swagger_path = "/swagger/*"
+	_echo_check_path   = "/ping"
 )
 
 var (
@@ -156,4 +162,26 @@ func (p EchoPeer) Parse(pp EchoPack) {
 			clog.Info(fmt.Sprintf("endpoint %s#%s with no pre handlers", palette.SkyBlue(ep.Method), palette.SkyBlue(pp.P.Prefix+ep.Path)))
 		}
 	}
+}
+
+func NewEchoSwagPeer() EchoPeer {
+	ep := EchoPeer{}
+	ep.ToEndpoint(Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]{
+		Method:  http.MethodGet,
+		Path:    _echo_swagger_path,
+		Handler: echoSwagger.WrapHandler,
+	})
+	return ep
+}
+
+func NewEchoCheckPeer() EchoPeer {
+	ep := EchoPeer{}
+	ep.ToEndpoint(Endpoint[echo.HandlerFunc, echo.MiddlewareFunc]{
+		Method: http.MethodGet,
+		Path:   _echo_check_path,
+		Handler: func(c echo.Context) error {
+			return c.String(http.StatusOK, "pong")
+		},
+	})
+	return ep
 }

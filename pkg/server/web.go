@@ -25,11 +25,10 @@ type (
 	// WebServer is the basic abstraction for web server.
 	// P represents the route pack.
 	WebServer interface {
-		WithCheckRoute(check bool) // public set check
-		WithSwagRoute(swag bool)   // public set swagger
-		WithRoute(r any)           // public set route
-		Start()                    // starting server
-		Stop()                     // stopping server
+		WithPeer(p ...any)  // public set peer
+		WithRoute(r ...any) // public set route
+		Start()             // starting server
+		Stop()              // stopping server
 	}
 	webServer[H http.Handler] struct {
 		h    H

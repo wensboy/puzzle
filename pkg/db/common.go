@@ -40,6 +40,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -54,6 +55,22 @@ const (
 	_default_sqlite_dsn = "file:<db_name>[?{key=value&}]"
 	_conn_sql_timeout   = 3 * time.Second
 )
+
+func ToStmt(db *sqlx.DB, sqlStr string) (*sqlx.Stmt, error) {
+	return db.Preparex(sqlStr)
+}
+
+func ToStmtContext(ctx context.Context, db *sqlx.DB, sqlStr string) (*sqlx.Stmt, error) {
+	return db.PreparexContext(ctx, sqlStr)
+}
+
+func ToTx(db *sqlx.DB) (*sqlx.Tx, error) {
+	return db.Beginx()
+}
+
+func ToTxContext(ctx context.Context, db *sqlx.DB, opts *sql.TxOptions) (*sqlx.Tx, error) {
+	return db.BeginTxx(ctx, opts)
+}
 
 // InsertWithPlace return error occurred during the execution of the insert SQL with placeholder parameters.
 // The primary key that returns a successful insert may be modified later.
