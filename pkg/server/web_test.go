@@ -48,8 +48,7 @@ func Test_echo(t *testing.T) {
 func Test_swagger(t *testing.T) {
 	// test echo swagger []
 	s := InitEchoServer()
-	rr := s.MountSwagRoute()
-	rr.Outbound()
+	s.WithPeer(router.NewEchoSwagPeer())
 	s.Start()
 }
 
@@ -57,8 +56,7 @@ func Test_swagger(t *testing.T) {
 func Test_check(t *testing.T) {
 	// test echo swagger [passed]
 	s := InitEchoServer()
-	rr := s.MountCheckRoute()
-	rr.Outbound()
+	s.WithPeer(router.NewEchoCheckPeer())
 	s.Start()
 }
 
@@ -66,8 +64,7 @@ func Test_check(t *testing.T) {
 func Test_many_route(t *testing.T) {
 	// test echo swagger [passed]
 	s := InitEchoServer()
-	_ = s.MountCheckRoute()
-	rr := s.MountSwagRoute()
-	rr.Outbound()
+	s.WithPeer(router.NewEchoSwagPeer())
+	s.WithPeer(router.NewEchoCheckPeer())
 	s.Start()
 }

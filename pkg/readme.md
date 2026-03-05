@@ -15,6 +15,7 @@ todo:
 - [Router](#router)
 - [Config](#config)
 - [Cli](#cli) 
+- [Server](#server)
 - [Integration](#integration)
 - [Reference](#reference)
 
@@ -92,13 +93,26 @@ integrated into a single root command (the application), thus achieving CLI inte
 is for future research and preliminary design of multi-service launchers and reusable 
 templates.
 
+## <a id="server">Server</a>
+
+The Server module encapsulates commonly used backend frameworks and attempts to unify 
+server-related interfaces. Examples include `Echo, Gin, Chi` and so on. Service implementations can 
+be extended by referring to these interfaces, and different server types can be customized 
+and integrated according to the server interfaces. 
+
+|built-in|status|
+|:------:|:----:|
+|`Echo`| ✅ |
+|`Gin`| ❌ |
+|`Chi`| ❌ |
+
 ## <a id="integration">Integration</a>
 
 Integrate third-party API interfaces. 
 
-| third name | website | progress | usage | 
-|:----------:|:-------:|:--------:|:-----:|
-| echoSwagger | https://github.com/swaggo/echo-swagger | default | `server.EchoServer.MountSwagRoute()` |
+| third name | website | progress | usage | status |
+|:----------:|:-------:|:--------:|:-----:|:------:|
+| echoSwagger | https://github.com/swaggo/echo-swagger | default | `server.EchoServer.MountSwagRoute()` | ✅ |
 
 ## <a id="reference">Reference</a>
 

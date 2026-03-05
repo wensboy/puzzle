@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/wendisx/puzzle/pkg/clog"
+	"github.com/wendisx/puzzle/pkg/router"
 	"github.com/wendisx/puzzle/pkg/server"
 )
 
@@ -19,7 +20,10 @@ var (
 	_verb_server_start = ":server:start"
 )
 
-func mountServer(rootCmd *cobra.Command) {
+// MountServer mount the verb-server to the instruction tree.
+// For details, see the command.json file in the project structure to
+// find the composition structure of the corresponding instruction.
+func MountServer(rootCmd *cobra.Command) {
 	startCmd := GetCommand(_verb_server_start, _default_delimiter)
 	startCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		hf, err := cmd.Flags().GetString(_flag_handler)
@@ -30,8 +34,12 @@ func mountServer(rootCmd *cobra.Command) {
 			return err
 		}
 		server := server.InitWebServer(hf)
-		server.WithCheckRoute(checkf)
-		server.WithSwagRoute(swagf)
+		if checkf {
+			server.WithPeer(router.NewEchoCheckPeer())
+		}
+		if swagf {
+			server.WithPeer(router.NewEchoSwagPeer())
+		}
 		server.Start()
 		return nil
 	}

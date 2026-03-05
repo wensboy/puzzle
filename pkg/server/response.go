@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 )
@@ -38,6 +39,14 @@ const (
 
 	// status text default
 	DEFAULT_STATUS_TEXT = ""
+)
+
+var (
+	echo_responder_pool = sync.Pool{
+		New: func() any {
+			return &EchoResponder{}
+		},
+	}
 )
 
 type (
@@ -103,4 +112,15 @@ func (rd *EchoResponder) ResponseHttp(re HttpEvent) error {
 		return rd.Error(re.Code, re.Msg)
 	}
 	return rd.c.JSON(re.HttpCode, re.Data)
+}
+
+func GetEchoResponder(c echo.Context) *EchoResponder {
+	res := echo_responder_pool.Get().(*EchoResponder)
+	res.c = c
+	return res
+}
+
+func PutEchoResponder(r *EchoResponder) {
+	r.c = nil
+	echo_responder_pool.Put(r)
 }
