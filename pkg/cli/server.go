@@ -20,7 +20,10 @@ var (
 	_verb_server_start = ":server:start"
 )
 
-func mountServer(rootCmd *cobra.Command) {
+// MountServer mount the verb-server to the instruction tree.
+// For details, see the command.json file in the project structure to
+// find the composition structure of the corresponding instruction.
+func MountServer(rootCmd *cobra.Command) {
 	startCmd := GetCommand(_verb_server_start, _default_delimiter)
 	startCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		hf, err := cmd.Flags().GetString(_flag_handler)
