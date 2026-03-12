@@ -44,10 +44,11 @@ var (
 
 // Config record record all possible configuration items.
 type Config struct {
-	EnvConfig    []string     `yaml:"environment"` // special environment config
-	DBConfig     DBConfig     `yaml:"database"`    // database config
-	ServerConfig ServerConfig `yaml:"server"`      // server config
-	SwagConfig   SwagConfig   `yaml:"swagger"`     // swagger config
+	EnvConfig    []string     `yaml:"environment" json:"environment"` // special environment config
+	GithubConfig GithubConfig `yaml:"github" json:"github"`           // github config
+	DBConfig     DBConfig     `yaml:"database" json:"database"`       // database config
+	ServerConfig ServerConfig `yaml:"server" json:"server"`           // server config
+	SwagConfig   SwagConfig   `yaml:"swagger" json:"swagger"`         // swagger config
 }
 
 // DefaultConfigFile set default config file.
@@ -68,6 +69,7 @@ func LoadConfig(path string) *Config {
 	c := &Config{
 		DBConfig:     initDBConfig(),
 		ServerConfig: initServerConfig(),
+		GithubConfig: initGithubConfig(),
 	}
 	if path == "" {
 		path = _default_config_path
