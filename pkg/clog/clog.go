@@ -30,8 +30,11 @@ const (
 	_max_level    = 1 << 5
 	_offset_level = 1 << 2
 
-	// caller(exactly need to show) -> caller(clog) -> clog.Log() -> logger.log() -> runtime.Caller -> extern low level
-	_default_skip_step = 5
+	// Callers: [Callers, log, instance.method, public.function, clog.public_func], so just skip four here.
+	// I guess it can be realized through dynamic modification that any encapsulated API can accurately print
+	// the correct call stack, but I won’t try to do this here because there are a lot of
+	// uncertainties, but you can do this, we all like hackers.
+	_default_skip_step = 4
 	_default_template  = `{_temp_timestamp} {_temp_shortpath}:{_temp_linenum} [{_temp_level}] {_temp_prefix}`
 )
 
